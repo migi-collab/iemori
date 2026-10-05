@@ -163,6 +163,8 @@ select.input{appearance:none;background-image:linear-gradient(45deg,transparent 
 .status.dirty i{background:var(--accent)}
 
 /* guest */
+.map{border-radius:16px;overflow:hidden;border:1px solid var(--line)}
+.map svg{display:block;width:100%;height:auto}
 .placecard{display:grid;gap:6px}
 .placecard .addr{font-size:13px}
 .maplink{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-size:12px;text-decoration:none;background:var(--screen);white-space:nowrap}
@@ -255,11 +257,11 @@ const HOME_PATH='homes/main', LOG_PATH='private/log';
 const W='日月火水木金土';
 
 const STEPS=[
-  {t:'家の場所',where:'案内タブのいちばん上に表示されます。'},
-  {t:'近くのお店',where:''},
-  {t:'うちにあるもの',where:''},
-  {t:'お願い',where:''},
-  {t:'ゴミと精算',where:''}
+  {t:'家の場所'},
+  {t:'近くのお店'},
+  {t:'うちにあるもの'},
+  {t:'お願い'},
+  {t:'ゴミと精算'}
 ];
 const SPOT_KINDS=['コンビニ','スーパー','駅','ドラッグストア','デリバリー','その他'];
 // 現在地から探したときの候補（デモ用の見本。本番は位置情報＋地図APIで取得）
@@ -311,8 +313,7 @@ const SHOP=[
   {name:'氷',kw:['氷']},
   {name:'紙皿・紙コップ・割り箸',kw:['紙皿','割り箸','紙コップ']},
   {name:'グラス',kw:['グラス','食器','コップ']},
-  {name:'ゴミ袋',kw:['ゴミ袋']},
-  {name:'スマホの充電器',kw:['充電']}
+  {name:'ゴミ袋',kw:['ゴミ袋']}
 ];
 
 const EMPTY=()=>({name:'',address:'',access:'',spots:[],items:[],asks:[],trash:{area:'',rows:[{kind:'燃えるゴミ',days:[]},{kind:'資源（びん・缶・ペット）',days:[]}],bagPlace:'',notes:''},slope:500});
@@ -459,11 +460,12 @@ function hostForm(){
     <div class="field"><label for="f-newask">自分で書く</label>
       <textarea class="input" id="f-newask" rows="2" placeholder="例：ぬいぐるみは触らないでね"></textarea>
       <button type="button" class="primary" data-act="addask" style="margin-top:4px">追加</button></div>
-    <div class="lbl" style="margin:16px 0 6px">追加したお願い（${d.asks.length}件）</div>
+    <div class="sec"><h3>言い方に迷ったら <small>タップで追加</small></h3>
+      <div class="chips">${ASK_PRESETS.map(a=>`<button type="button" class="chip add" data-addask="${esc(a)}" ${d.asks.includes(a)?'disabled':''}>${esc(a)}</button>`).join('')}</div></div>
+    <div class="sec"><h3>追加したお願い（${d.asks.length}件）</h3>
     ${d.asks.length?`<div>${d.asks.map((a,i)=>`<div class="askrow"><span>${esc(a)}</span><button type="button" class="del" data-del="asks.${i}">削除</button></div>`).join('')}</div>`:'<div class="empty">お願いがなければ空のままでOK</div>'}
-    <p class="small muted" style="margin-top:10px">物に関するお願いは、前のステップの「この物についてのお願い」に書くと、その物の説明と一緒に表示されます。</p>
-    <div class="sec" style="border-top:1px solid var(--line);padding-top:14px"><h3>言い方に迷ったら <small>タップで追加</small></h3>
-      <div class="chips">${ASK_PRESETS.map(a=>`<button type="button" class="chip add" data-addask="${esc(a)}" ${d.asks.includes(a)?'disabled':''}>${esc(a)}</button>`).join('')}</div></div>`;
+    </div>
+    <p class="small muted" style="margin-top:10px">物に関するお願いは、前のステップの「この物についてのお願い」に書くと、その物の説明と一緒に表示されます。</p>`;
   if(step===4){
     const city=cityOf(d.address);
     const f=TFETCH.res;
@@ -494,7 +496,6 @@ function hostForm(){
   <div class="hdr" style="padding-bottom:6px"><h2>${s.t}</h2>
     <nav class="progress" aria-label="登録ステップ">${STEPS.map((x,i)=>`<button type="button" data-step="${i}" aria-current="${i===step}" class="${i<step?'done':''}">${x.t}</button>`).join('')}</nav></div>
   ${blank&&step===0?`<div class="samplebar"><span>どんな感じか見たいときは</span><button type="button" class="ghost" data-act="sample">見本を入れる</button></div>`:''}
-  ${s.where?`<div class="where"><span>${IC.home.replace('<svg','<svg width="16" height="16" style="flex:none;margin-top:1px"')}</span><span><b>友達の画面では：</b>${s.where}</span></div>`:''}
   ${body}`;
 }
 function formFooter(){
@@ -512,12 +513,6 @@ function hostShare(){
   <div class="field"><label for="share-msg">送るメッセージ</label><textarea class="input" id="share-msg" rows="3">${esc(shareText())}</textarea></div>
   <button type="button" class="primary" data-act="copy">メッセージをコピー</button>
 
-  <div class="sec">
-    <div class="line-mock">
-      <div class="linebar"><span>‹ 宅飲みグループ</span><span>${$('#clock').textContent}</span></div>
-      <div class="bubble" id="bubble">${esc(shareText())}</div>
-    </div>
-  </div>
   <div class="sec" style="display:grid;gap:8px"><button type="button" class="secondary" data-go="guest-guide">友達の画面を見てみる</button><button type="button" class="secondary" data-go="host-log">来客ログを見る</button></div>`;
 }
 
@@ -528,7 +523,7 @@ function hostLog(){
   const today=new Date();const iso=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
   return `
   <button type="button" class="back" data-go="host-share">← URLを送る画面へ</button>
-  <div class="hdr" style="padding-top:0"><div class="eyebrow">家主用 · 自分だけに見えます</div><h2>${esc(HOME&&HOME.name||'わたしの家')}の来客ログ</h2></div>
+  <div class="hdr" style="padding-top:0"><h2>${esc(HOME&&HOME.name||'わたしの家')}の来客ログ</h2></div>
   <div class="stat"><div><span class="small muted">これまで</span><b>${v.length}回</b></div><div><span class="small muted">来てくれた人</span><b>のべ${total}人</b></div></div>
   <div class="sec card"><h3 style="margin:0 0 8px;font-size:13px">今日の宅飲みを記録</h3>
     <div class="mini" style="grid-template-columns:1fr 1fr 70px">
@@ -552,6 +547,21 @@ function guestTop(sub){
 function guestEmpty(){
   return `<div class="loading"><div><b>おうちのしおり</b>まだ家の情報が登録されていません。<br>家主が登録するとここに表示されます。</div></div>`;
 }
+// 案内タブの地図（デモ用の絵。本番は地図サービスの画像を表示）
+function demoMap(spots){
+  const P=[[250,46],[62,150],[70,32],[262,158],[150,178],[292,104]];
+  return `<div class="map"><svg viewBox="0 0 320 200" role="img" aria-label="家と近くのお店の地図（デモ）">
+    <rect width="320" height="200" fill="var(--sunk)"/>
+    <rect x="12" y="62" width="96" height="60" rx="6" fill="var(--line)"/>
+    <rect x="128" y="10" width="92" height="40" rx="6" fill="var(--line)"/>
+    <rect x="232" y="68" width="80" height="54" rx="6" fill="var(--accent-soft)"/>
+    <rect x="128" y="140" width="84" height="22" rx="6" fill="var(--line)"/>
+    <path d="M0 132H320M118 0V200M0 56H320M222 56V200" stroke="var(--screen)" stroke-width="12" fill="none"/>
+    <path d="M0 20H320" stroke="var(--screen)" stroke-width="6" fill="none"/>
+    ${spots.slice(0,P.length).map((p,i)=>`<circle cx="${P[i][0]}" cy="${P[i][1]}" r="6" fill="var(--screen)" stroke="var(--ink)" stroke-width="3"/><text x="${P[i][0]}" y="${P[i][1]-11}" font-size="10" font-weight="700" text-anchor="middle" fill="var(--ink)">${esc(p.kind)}</text>`).join('')}
+    <g transform="translate(170 94)"><circle r="16" fill="var(--accent)"/><path d="M-7 1L0-6L7 1V8H-7Z" fill="var(--accent-ink)"/></g>
+  </svg></div>`;
+}
 function guestGuide(){
   const h=HOME;
   const items=h.items.filter(i=>i.name.trim());
@@ -561,7 +571,8 @@ function guestGuide(){
   const spots=h.spots.filter(p=>p.name.trim()).slice().sort((a,b)=>(+a.min||99)-(+b.min||99));
   const area=(h.address.match(/^(.+?[都道府県])?(.+?[市区町村])/)||[''])[0];
   return guestTop('')+`
-  <div class="card placecard">
+  ${demoMap(spots)}
+  <div class="card placecard" style="margin-top:10px">
     ${h.address?`<div class="addr">${esc(h.address)}</div><div><a class="maplink" href="${mapUrl(h.address)}" target="_blank" rel="noopener">${IC.pin}Googleマップで開く</a></div>`:''}
     ${h.access?`<div class="small muted" style="white-space:pre-wrap">${esc(h.access)}</div>`:''}
   </div>
@@ -583,12 +594,12 @@ function guestShop(){
   const nearest=h.spots.filter(p=>p.name.trim()&&p.kind!=='駅'&&p.kind!=='デリバリー').sort((a,b)=>(+a.min||99)-(+b.min||99))[0];
   return guestTop('買い出しリスト')+`
   ${nearest?`<div class="card small">いちばん近いのは <b>${esc(nearest.name)}</b>${nearest.min?`（徒歩${esc(nearest.min)}分）`:''}</div>`:''}
-  <div class="sec"><h3>買うもの <small>${MODE==='local'?'このブラウザだけに保存':'みんなで共有・あと'+left+'つ'}</small></h3>
-    <div class="shop">${list.map(r=>`<label class="row ${r.done?'done':''}"><input type="checkbox" data-sdone="${r.id}" ${r.done?'checked':''} ${SHOP_RO?'disabled':''}><span class="nm">${esc(r.name)}</span><span class="r">${r.custom?`<span class="pill added">追加</span>${SHOP_RO?'':`<button type="button" class="x" data-sdel="${r.id}" aria-label="${esc(r.name)}をリストから消す">×</button>`}`:'<span class="pill buy">買う</span>'}</span></label>`).join('')}</div>
+  <div class="sec"><h3>買うもの ${MODE==='local'?'':`<small>みんなで共有・あと${left}つ</small>`}</h3>
+    <div class="shop">${list.map(r=>`<label class="row ${r.done?'done':''}"><input type="checkbox" data-sdone="${r.id}" ${r.done?'checked':''} ${SHOP_RO?'disabled':''}><span class="nm">${esc(r.name)}</span><span class="r">${r.custom?`<span class="pill added">追加</span>${SHOP_RO?'':`<button type="button" class="x" data-sdel="${r.id}" aria-label="${esc(r.name)}をリストから消す">×</button>`}`:''}</span></label>`).join('')}</div>
     ${SHOP_RO?`<p class="small muted" style="margin-top:8px">リストに追加・チェックするには、家主に「コントリビューター」として招待してもらってください。</p>`:`
     <div class="shopadd"><input class="input" id="shop-new" placeholder="例：ポテチ、アイス、炭酸水" aria-label="買うものを追加"><button type="button" class="ghost" data-act="shopadd">追加</button></div>`}
   </div>
-  ${['food','dish'].map(cid=>{const c=ITEM_CATS.find(x=>x.id===cid);const g=items.filter(it=>catOf(it)===cid);return g.length?`<div class="sec"><h3>家にある${c.t} <small>買わなくてOK</small></h3><div class="shop">${g.map(it=>`<div class="row"><span></span><span>${esc(it.name)}<span class="small muted" style="display:block">${esc(it.note)}</span></span><span class="pill have">あるよ</span></div>`).join('')}</div></div>`:''}).join('')}`;
+  ${['food','dish'].map(cid=>{const c=ITEM_CATS.find(x=>x.id===cid);const g=items.filter(it=>catOf(it)===cid);return g.length?`<div class="sec"><h3>家にある${c.t}</h3><div class="shop">${g.map(it=>`<div class="row"><span></span><span>${esc(it.name)}<span class="small muted" style="display:block">${esc(it.note)}</span></span><span></span></div>`).join('')}</div></div>`:''}).join('')}`;
 }
 async function shopWrite(id,data){
   const prev=SHOPDOCS[id];
@@ -739,7 +750,6 @@ document.addEventListener('input',e=>{
   const t=e.target;
   if(t.dataset.f){let v=t.value;if(t.dataset.num)v=v.replace(/[^\d]/g,'');setPath(DRAFT,t.dataset.f,v);stashDraft();
     const st=document.querySelector('.hdr .status');if(st)st.outerHTML=statusChip();return}
-  if(t.id==='share-msg'){const b=$('#bubble');if(b)b.textContent=t.value}
 });
 document.addEventListener('keydown',e=>{
   if(e.target.id==='shop-new'&&e.key==='Enter'&&!e.isComposing){e.preventDefault();const b=document.querySelector('[data-act="shopadd"]');if(b)b.click();return}
