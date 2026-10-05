@@ -1,0 +1,831 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>おうちのしおり 体験版</title>
+<meta name="description" content="宅飲みの家主が、家の案内を友達に共有するアプリ案の体験版。見本の家が入っていて、家主側と参加者側の画面を自由に触れます。">
+<meta property="og:title" content="おうちのしおり 体験版">
+<meta property="og:description" content="家主が一度だけ家の情報を登録して、URLを送るだけ。場所や買い出しの確認のついでに、家のルールも嫌味なく伝わります。">
+<meta property="og:type" content="website">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Maru+Gothic:wght@500;700&display=swap">
+<style>
+:root{
+  --bg:#E6EAEE; --panel:#F4F6F8; --screen:#FFFFFF; --sunk:#F1F3F6;
+  --ink:#1D2733; --muted:#5E6A77; --line:#D8DEE5;
+  --accent:#F2B23A; --accent-ink:#3A2805; --accent-soft:#FCEFD3;
+  --btn:#24324A; --btn-ink:#FFFFFF; --danger:#B3261E;
+  --frame:#1B222C;
+  --display:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Hiragino Sans",sans-serif;
+  --body:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0F141A; --panel:#151B22; --screen:#1A212A; --sunk:#222A34;
+    --ink:#E6EBF0; --muted:#9BA7B3; --line:#2E3844;
+    --accent:#F2B23A; --accent-ink:#2A1C02; --accent-soft:#3A2E15;
+    --btn:#F2B23A; --btn-ink:#231802; --danger:#F2A09A; --frame:#05080B;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0F141A; --panel:#151B22; --screen:#1A212A; --sunk:#222A34;
+  --ink:#E6EBF0; --muted:#9BA7B3; --line:#2E3844;
+  --accent:#F2B23A; --accent-ink:#2A1C02; --accent-soft:#3A2E15;
+  --btn:#F2B23A; --btn-ink:#231802; --danger:#F2A09A; --frame:#05080B;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.6;padding-inline:16px;padding-block:24px}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+a{color:inherit}
+
+.stage{max-width:980px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) 390px;gap:40px;align-items:start}
+.stage.solo{grid-template-columns:390px;justify-content:center}
+.story h1{font-family:var(--display);font-size:28px;line-height:1.3;margin:0 0 6px;text-wrap:balance}
+.story .lead{color:var(--muted);margin:0 0 20px;max-width:34em}
+.story .tag{display:inline-block;font-size:11px;letter-spacing:.08em;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:2px 10px;margin-bottom:12px}
+.scenes{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.scenes button{width:100%;text-align:left;display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:start;background:transparent;border:1px solid transparent;border-radius:12px;padding:10px 12px}
+.scenes button:hover{background:var(--panel)}
+.scenes button[aria-current="true"]{background:var(--panel);border-color:var(--line)}
+.scenes .n{font-family:var(--display);font-weight:700;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--sunk);color:var(--muted);font-size:13px}
+.scenes button[aria-current="true"] .n{background:var(--accent);color:var(--accent-ink)}
+.scenes .when{font-size:11px;color:var(--muted);letter-spacing:.04em}
+.scenes .what{font-weight:700;display:block}
+.scenes .why{font-size:12.5px;color:var(--muted);display:block;margin-top:2px}
+.note{margin-top:20px;font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:12px}
+
+.phone{width:390px;max-width:100%;height:780px;border-radius:44px;background:var(--frame);padding:12px;box-shadow:0 30px 60px -30px rgba(10,20,30,.45)}
+.screen{position:relative;height:100%;border-radius:34px;overflow:hidden;background:var(--screen);display:flex;flex-direction:column}
+.notch{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:96px;height:24px;border-radius:14px;background:var(--frame);z-index:5}
+.statusbar{height:40px;flex:none;display:flex;justify-content:space-between;align-items:end;padding:0 26px 4px;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums}
+.view{flex:1;overflow-y:auto;overflow-x:hidden;padding:4px 20px 24px;scrollbar-width:none}
+.view::-webkit-scrollbar{display:none}
+.tabbar{flex:none;display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line);background:var(--screen);padding:6px 6px 14px}
+.tabbar button{background:none;border:0;border-radius:10px;padding:6px 0;font-size:11px;color:var(--muted);display:grid;justify-items:center;gap:2px}
+.tabbar button svg{width:22px;height:22px}
+.tabbar button[aria-current="true"]{color:var(--ink);font-weight:700}
+.tabbar button[aria-current="true"] svg{color:var(--accent)}
+.footbar{flex:none;display:flex;gap:8px;border-top:1px solid var(--line);background:var(--screen);padding:10px 16px 16px}
+.footbar .primary{flex:1}
+.footbar .secondary{width:auto;padding:12px 16px}
+
+.hdr{padding:10px 0 14px}
+.hdr .eyebrow{font-size:11px;color:var(--muted);letter-spacing:.06em}
+.hdr h2{font-family:var(--display);font-size:24px;margin:2px 0 0;line-height:1.3;text-wrap:balance}
+.hdr .sub{font-size:12px;color:var(--muted)}
+.sec{margin-top:20px}
+.sec > h3{font-size:13px;margin:0 0 8px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.sec > h3 small{font-weight:400;color:var(--muted);font-size:11px}
+.field{display:grid;gap:4px;margin-bottom:12px}
+.field label,.lbl{font-size:12px;color:var(--muted)}
+.input{width:100%;border:1px solid var(--line);background:var(--screen);border-radius:12px;padding:10px 12px}
+textarea.input{resize:vertical;min-height:64px}
+select.input{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(-45deg,transparent 50%,var(--muted) 50%);background-position:calc(100% - 16px) 55%,calc(100% - 11px) 55%;background-size:5px 5px;background-repeat:no-repeat;padding-right:28px}
+.input-row{display:flex;gap:8px;align-items:center}
+.input-row .input{flex:1;min-width:0}
+.ghost{border:1px solid var(--line);background:var(--sunk);border-radius:12px;padding:8px 12px;font-size:12px;white-space:nowrap}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--screen);border-radius:999px;padding:5px 12px;font-size:13px}
+.chip[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);font-weight:700}
+.chip.add::before{content:"＋ ";color:var(--muted)}
+.chip:disabled{opacity:.45;cursor:default}
+.primary{width:100%;border:0;border-radius:14px;background:var(--btn);color:var(--btn-ink);font-weight:700;padding:14px;font-size:15px}
+.primary:disabled{opacity:.5}
+.secondary{width:100%;border:1px solid var(--line);border-radius:14px;background:var(--screen);padding:12px;font-weight:700}
+.card{border:1px solid var(--line);border-radius:16px;padding:14px;background:var(--screen)}
+.muted{color:var(--muted)}
+.small{font-size:12px}
+.kbd{font-variant-numeric:tabular-nums}
+.linkbtn{background:none;border:0;padding:0;color:var(--muted);font-size:12px;text-decoration:underline;text-underline-offset:3px}
+.back{background:none;border:0;padding:6px 0;color:var(--muted);font-size:12px}
+
+/* register */
+.progress{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-top:6px}
+.progress button{border:0;background:none;padding:4px 0 0;display:grid;gap:4px;font-size:10.5px;color:var(--muted);text-align:left}
+.progress button::before{content:"";height:4px;border-radius:2px;background:var(--line)}
+.progress button.done::before{background:var(--accent)}
+.progress button[aria-current="true"]{color:var(--ink);font-weight:700}
+.progress button[aria-current="true"]::before{background:var(--btn)}
+.where{display:flex;gap:8px;align-items:flex-start;background:var(--sunk);border-radius:12px;padding:10px 12px;font-size:12px;color:var(--muted);margin-bottom:14px}
+.where b{color:var(--ink)}
+.samplebar{display:flex;justify-content:space-between;align-items:center;gap:8px;border:1px dashed var(--line);border-radius:12px;padding:8px 12px;font-size:12px;color:var(--muted);margin-bottom:12px}
+.locate{border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:14px;display:grid;gap:10px}
+.locate .head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.locate .head b{font-size:13px}
+.locbtn{display:inline-flex;align-items:center;gap:6px;border:0;border-radius:999px;background:var(--btn);color:var(--btn-ink);font-weight:700;font-size:12.5px;padding:8px 14px;white-space:nowrap}
+.locbtn:disabled{opacity:.6}
+.cands{display:grid}
+.cand{display:grid;grid-template-columns:22px 1fr auto;gap:10px;align-items:center;padding:8px 2px;border-bottom:1px solid var(--line);font-size:13px}
+.cand:last-child{border-bottom:0}
+.cand input{width:18px;height:18px;margin:0;accent-color:var(--btn)}
+.cand .kind{display:block;font-size:11px;color:var(--muted)}
+.cand.added{opacity:.5}
+.spin{width:14px;height:14px;border-radius:50%;border:2px solid currentColor;border-right-color:transparent;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spin{animation:none}}
+.cattabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:12px;scrollbar-width:none}
+.cattabs::-webkit-scrollbar{display:none}
+.cattabs button{flex:none;border:1px solid var(--line);background:var(--screen);border-radius:10px;padding:6px 10px;font-size:12.5px;display:flex;gap:6px;align-items:center}
+.cattabs button[aria-pressed="true"]{background:var(--btn);color:var(--btn-ink);border-color:var(--btn);font-weight:700}
+.cattabs .c{font-size:11px;min-width:18px;height:18px;border-radius:9px;display:grid;place-items:center;background:var(--sunk);color:var(--muted);padding:0 5px}
+.cattabs button[aria-pressed="true"] .c{background:var(--accent);color:var(--accent-ink)}
+.catlabel{font-size:11px;color:var(--muted);letter-spacing:.04em;margin:12px 0 6px}
+.catlabel:first-child{margin-top:0}
+.fetched{background:var(--sunk);border-radius:12px;padding:8px 12px}
+.fetched .tbl td{padding:7px 2px;font-size:12.5px}
+.shopadd{display:flex;gap:8px;margin-top:10px}
+.shopadd .input{flex:1;min-width:0}
+.shopadd .ghost{background:var(--btn);color:var(--btn-ink);border-color:var(--btn);font-weight:700;padding:8px 16px}
+.shop .row .x{border:0;background:none;color:var(--muted);font-size:15px;padding:0 4px;line-height:1}
+.shop .row .r{display:flex;gap:6px;align-items:center}
+.pill.added{border:1px dashed var(--muted);color:var(--muted)}
+.editrow{border:1px solid var(--line);border-radius:14px;padding:12px;display:grid;gap:8px;margin-bottom:8px}
+.editrow .top{display:flex;gap:8px;align-items:center}
+.editrow .top .input{flex:1;min-width:0}
+.del{border:0;background:none;color:var(--muted);font-size:12px;padding:6px 4px;white-space:nowrap}
+.del:hover{color:var(--danger)}
+.mini{display:grid;grid-template-columns:110px 1fr 76px;gap:6px}
+.mini .input{padding:9px 10px;min-width:0}
+.askrow{display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.askrow span{flex:1}
+.days{display:flex;gap:4px;flex-wrap:wrap}
+.days button{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--screen);font-size:12.5px}
+.days button[aria-pressed="true"]{background:var(--btn);color:var(--btn-ink);border-color:var(--btn);font-weight:700}
+.empty{border:1px dashed var(--line);border-radius:14px;padding:14px;text-align:center;font-size:12.5px;color:var(--muted)}
+.status{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.status i{width:7px;height:7px;border-radius:50%;background:var(--muted);display:inline-block}
+.status.ok i{background:#3DAA6D}
+.status.dirty i{background:var(--accent)}
+
+/* guest */
+.placecard{display:grid;gap:6px}
+.placecard .addr{font-size:13px}
+.maplink{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-size:12px;text-decoration:none;background:var(--screen);white-space:nowrap}
+.spotlist{display:grid}
+.spot{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:10px 2px;border-bottom:1px solid var(--line);font-size:13px}
+.spot:last-child{border-bottom:0}
+.spot .kind{font-size:11px;color:var(--muted);display:block}
+.spot .r{display:flex;gap:8px;align-items:center}
+.itemgrid{display:flex;flex-wrap:wrap;gap:6px}
+.detail{margin-top:10px;background:var(--sunk);border-radius:12px;padding:10px 12px;font-size:13px}
+.detail .aside{display:block;margin-top:6px;font-size:12.5px}
+.asks{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.asks li{display:grid;grid-template-columns:8px 1fr;gap:10px;align-items:baseline;font-size:13.5px}
+.asks li::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent);transform:translateY(-2px)}
+.softbox{background:var(--accent-soft);border-radius:16px;padding:14px}
+.softbox h3{margin:0 0 8px;font-size:13px}
+.shop{display:grid}
+.shop .row{display:grid;grid-template-columns:22px 1fr auto;gap:10px;align-items:center;padding:9px 2px;border-bottom:1px solid var(--line)}
+.shop .row:last-child{border-bottom:0}
+.shop input{width:18px;height:18px;margin:0;accent-color:var(--btn)}
+.pill{font-size:11px;border-radius:999px;padding:1px 8px;white-space:nowrap}
+.pill.have{background:var(--accent-soft);border:1px solid var(--accent)}
+.pill.buy{border:1px solid var(--line);color:var(--muted)}
+.shop .row.done .nm{text-decoration:line-through;color:var(--muted)}
+.tbl{width:100%;border-collapse:collapse;font-size:13.5px}
+.tbl td{padding:10px 4px;border-bottom:1px solid var(--line);vertical-align:top}
+.tbl tr:last-child td{border-bottom:0}
+.tbl td:nth-child(2){font-weight:700;white-space:nowrap}
+.tbl td:last-child{text-align:right;white-space:nowrap}
+.next{font-size:11px;font-weight:700;border-radius:999px;padding:1px 8px;background:var(--accent);color:var(--accent-ink)}
+.next.later{background:transparent;color:var(--muted);border:1px solid var(--line);font-weight:400}
+.big{font-family:var(--display);font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.2}
+.split{display:grid;gap:8px}
+.split .row{display:flex;justify-content:space-between;align-items:baseline;background:var(--sunk);border-radius:12px;padding:12px 14px}
+.split .row b{font-variant-numeric:tabular-nums;font-size:18px}
+.stepper{display:flex;align-items:center;gap:10px}
+.stepper button{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--screen);font-size:18px;line-height:1}
+.stepper output{min-width:48px;text-align:center;font-weight:700;font-variant-numeric:tabular-nums}
+.seg{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;background:var(--sunk);padding:4px;border-radius:12px}
+.seg button{border:0;background:transparent;border-radius:9px;padding:8px 0;font-size:13px;font-variant-numeric:tabular-nums}
+.seg button[aria-pressed="true"]{background:var(--screen);font-weight:700;box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.guestbanner{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:11px;color:var(--muted);background:var(--sunk);border-radius:10px;padding:6px 10px;margin-top:4px}
+
+.line-mock{background:#8CABD9;border-radius:16px;padding:12px;display:grid;gap:8px}
+.bubble{justify-self:end;max-width:90%;background:#8DE055;color:#111;border-radius:14px;padding:8px 12px;font-size:13px;white-space:pre-wrap;word-break:break-all}
+.linebar{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#fff;font-weight:700}
+.log{display:grid}
+.log .row{display:grid;grid-template-columns:64px 1fr auto;gap:10px;padding:10px 2px;border-bottom:1px solid var(--line);align-items:baseline}
+.log .row:last-child{border-bottom:0}
+.log .d{font-variant-numeric:tabular-nums;font-weight:700}
+.stat{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat div{background:var(--sunk);border-radius:12px;padding:10px 12px}
+.stat b{display:block;font-family:var(--display);font-size:22px;font-variant-numeric:tabular-nums}
+.loading{height:100%;display:grid;place-items:center;text-align:center;color:var(--muted)}
+.loading b{display:block;font-family:var(--display);font-size:22px;color:var(--ink)}
+.toast{position:absolute;left:16px;right:16px;bottom:90px;background:var(--ink);color:var(--screen);border-radius:12px;padding:10px 14px;font-size:13px;z-index:10}
+
+@media (max-width:860px){
+  .stage,.stage.solo{grid-template-columns:1fr;gap:20px;justify-items:center}
+  .story{width:100%;max-width:390px}
+  .story .lead,.story .note,.scenes .why,.story .tag{display:none}
+  .story h1{font-size:20px}
+  .scenes{display:flex;overflow-x:auto;gap:6px;padding-bottom:4px}
+  .scenes li{flex:none}
+  .scenes button{grid-template-columns:22px auto;padding:6px 10px;border-color:var(--line)}
+  .scenes .n{width:22px;height:22px;font-size:11px}
+  .scenes .when{display:none}
+  .scenes .what{font-size:12px;white-space:nowrap}
+}
+@media (max-width:440px){
+  body{padding-inline:0;padding-block:0}
+  .story{padding:12px 16px 0}
+  .phone{width:100%;height:auto;border-radius:0;padding:0;background:transparent;box-shadow:none}
+  .screen{border-radius:0;height:calc(100dvh - 96px)}
+  .stage.solo .screen{height:100dvh}
+  .notch,.statusbar{display:none}
+  .mini{grid-template-columns:1fr 1fr 64px}
+}
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+  <aside class="story" id="story" hidden>
+    <span class="tag">体験版</span>
+    <h1>おうちのしおり<span class="muted" style="font-size:.55em;font-weight:500">（仮）</span></h1>
+    <p class="lead">家主が一度だけ家の情報を登録して、URLをLINEで送るだけ。参加者は場所や買い出しの確認で自然と開き、その中で家のルールも嫌味なく目に入ります。</p>
+    <ol class="scenes" id="scenes"></ol>
+    <p class="note" id="modeNote"></p>
+  </aside>
+
+  <div class="phone">
+    <div class="screen">
+      <div class="notch" aria-hidden="true"></div>
+      <div class="statusbar" aria-hidden="true"><span id="clock"></span><span>5G ▮▮▮</span></div>
+      <div class="view" id="view"><div class="loading"><div><b>おうちのしおり</b>読み込み中…</div></div></div>
+      <div class="footbar" id="footbar" hidden></div>
+      <nav class="tabbar" id="tabbar" hidden></nav>
+      <div class="toast" id="toast" hidden></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+const DEMO=true; // true = 誰でも開ける体験版（共有ストレージを使わず、見本の家を最初から入れる）
+const PAGE_URL='https://migi-collab.github.io/ouchi-shiori/';
+const HOME_PATH='homes/main', LOG_PATH='private/log';
+const W='日月火水木金土';
+
+const SCENES=[
+  {id:'host-form', when:'宅飲み前（一度だけ）', what:'家主が家を登録', why:'5つのステップで入力。お願いごとは「家の案内」の一部として登録する。'},
+  {id:'host-share',when:'場所が決まったら', what:'LINEにURLを送る', why:'参加者はリンクを開くだけ。'},
+  {id:'guest-guide',when:'向かう途中・宅飲み中', what:'参加者が家の案内を見る', why:'場所や備品を見るついでに「ちょっとだけお願い」が目に入る。'},
+  {id:'guest-shop',when:'買い出し', what:'家にあるものを確認', why:'家にあるものは「買わなくてOK」に分かれる。'},
+  {id:'guest-trash',when:'片付け', what:'ゴミの日と分け方', why:'家のルールを共有して、全員が片付けに参加できる。'},
+  {id:'guest-split',when:'精算', what:'割り勘と家主傾斜', why:'「家主の負担を軽くする」が選択肢として自然に入る。'},
+  {id:'host-log',  when:'後日', what:'家主が来客ログを見返す', why:'「今日も人が来てくれた」を実感できる、家主だけの記録。'}
+];
+const STEPS=[
+  {t:'家の場所',where:'案内タブのいちばん上に表示されます。'},
+  {t:'近くのお店',where:'案内タブと買い出しタブに表示されます。'},
+  {t:'うちにあるもの',where:'案内タブに並びます。物ごとのお願いは、その物の説明にそっと添えて表示されます。'},
+  {t:'お願い',where:'案内タブの「ちょっとだけお願い」に表示されます。自分の言葉で書けます。言い方に迷ったら見本も使えます。'},
+  {t:'ゴミと精算',where:'ゴミタブと割り勘タブに表示されます。'}
+];
+const SPOT_KINDS=['コンビニ','スーパー','駅','ドラッグストア','デリバリー','その他'];
+// 現在地から探したときの候補（デモ用の見本。本番は位置情報＋地図APIで取得）
+const NEARBY_SAMPLE=[
+  {kind:'コンビニ',name:'セブン-イレブン 高円寺南3丁目店',min:2,m:140},
+  {kind:'コンビニ',name:'ローソン 高円寺南口店',min:5,m:380},
+  {kind:'デリバリー',name:'ドミノ・ピザ 高円寺店',min:4,m:300},
+  {kind:'スーパー',name:'サミット 高円寺店',min:6,m:450},
+  {kind:'ドラッグストア',name:'マツモトキヨシ 高円寺南口店',min:7,m:520},
+  {kind:'駅',name:'高円寺駅 南口',min:9,m:700},
+  {kind:'スーパー',name:'西友 高円寺店',min:11,m:850}
+];
+// 住所から取得したときのゴミ情報（デモ用の見本。本番は自治体のオープンデータ等から取得）
+const TRASH_SAMPLE={
+  '杉並区':{rows:[{kind:'可燃ごみ',days:[2,5]},{kind:'資源（びん・缶・ペットボトル）',days:[4]},{kind:'古紙・段ボール',days:[1]},{kind:'不燃ごみ',days:[3]}],notes:'ペットボトルはキャップとラベルを外して資源へ\n缶・びんは軽くすすいで資源へ\n紙皿・割り箸・食べ残しは可燃ごみ\n収集日の朝8時までに出す'},
+  '中野区':{rows:[{kind:'燃やすごみ',days:[1,4]},{kind:'びん・缶・ペットボトル',days:[3]},{kind:'古紙',days:[5]},{kind:'陶器・ガラス・金属ごみ',days:[6]}],notes:'ペットボトルはキャップとラベルを外す\n缶・びんは中を軽くすすぐ\n収集日の朝8時までに出す'},
+  '世田谷区':{rows:[{kind:'可燃ごみ',days:[2,5]},{kind:'資源（びん・缶・ペット）',days:[3]},{kind:'古紙',days:[1]},{kind:'不燃ごみ',days:[4]}],notes:'ペットボトルはキャップとラベルを外す\n汚れたプラスチックは可燃ごみ\n収集日の朝8時までに出す'},
+  '新宿区':{rows:[{kind:'燃やすごみ',days:[1,4]},{kind:'資源（びん・缶・ペット・古紙）',days:[3]},{kind:'プラスチック',days:[5]},{kind:'金属・陶器・ガラスごみ',days:[6]}],notes:'プラスチックは汚れを落としてから\nペットボトルはキャップとラベルを外す\n収集日の朝8時までに出す'},
+  '_default':{rows:[{kind:'燃えるゴミ',days:[1,4]},{kind:'資源（びん・缶・ペット）',days:[3]},{kind:'プラスチック',days:[5]},{kind:'燃えないゴミ',days:[6]}],notes:'ペットボトルはキャップとラベルを外す\n缶・びんは軽くすすぐ\n紙皿・割り箸・食べ残しは燃えるゴミ'}
+};
+const cityOf=a=>((a||'').match(/(?:[^\s都道府県]+[都道府県])?\s*([^\s都道府県]+?[市区町村])/)||[])[1]||'';
+const ITEM_CATS=[
+  {id:'play',t:'遊び道具'},
+  {id:'dish',t:'食器・調理道具'},
+  {id:'food',t:'食べ物・飲み物'},
+  {id:'rest',t:'泊まり・くつろぎ'},
+  {id:'room',t:'設備・その他'}
+];
+const ITEM_PRESETS={
+  play:[['Switch','自由に使ってOK。コントローラーは○個。'],['PS5','ソフトは棚にあるものを自由に。'],['ボドゲ','棚にあるものは自由に出してOK。'],['トランプ・UNO','テレビ台の引き出しに。'],['プロジェクター','白い壁に映せます。'],['動画サブスク','Netflix・Amazonプライムが見られます。']],
+  dish:[['グラス・食器','キッチンの棚のものを使ってOK。'],['紙皿・割り箸','シンク下にストックあり。'],['たこ焼き器','電気式。コンロ下の棚に。'],['ホットプレート','焼肉・お好み焼きプレートあり。'],['鍋・カセットコンロ','ボンベの予備は1本。'],['栓抜き・オープナー','キッチンの引き出しに。']],
+  food:[['氷','冷凍庫にあり。足りなければ買ってきてね。'],['調味料','塩・こしょう・醤油・マヨあり。'],['お米','炊飯器で3合まで炊けます。'],['割り材','炭酸水・烏龍茶が冷蔵庫に。'],['前回の残りのお酒','冷蔵庫の上の段。飲んでOK。']],
+  rest:[['泊まり用の布団','○組あり。'],['クッション・座布団','○個あり。'],['ブランケット','ソファの上に。'],['部屋着','貸せます。言ってね。'],['ドライヤー','洗面所に。']],
+  room:[['トイレ','玄関入ってすぐ右。'],['Wi-Fi','パスワードは冷蔵庫に貼ってあるよ。'],['充電器','Type-C / Lightning あり。'],['タオル','洗面所の棚のものを使ってOK。'],['ゴミ袋','シンク下の引き出しに。']]
+};
+const presetOf=n=>{for(const c of ITEM_CATS){const p=ITEM_PRESETS[c.id].find(x=>x[0]===n);if(p)return {cat:c.id,note:p[1]}}return null};
+const catOf=it=>it.cat||(presetOf(it.name)||{cat:'room'}).cat;
+const ASK_PRESETS=[
+  'ベッドには靴下のまま乗らないでね',
+  '洗い物はシンクに置いてくれればOK',
+  '帰る前にゴミだけ分けて袋に入れてね',
+  '23時を過ぎたら少しだけ声小さめで',
+  '気持ち悪くなったら遠慮なくトイレへ',
+  'タバコはベランダでお願いします'
+];
+const SHOP=[
+  {name:'お酒・ソフトドリンク',kw:[]},
+  {name:'つまみ・お菓子',kw:[]},
+  {name:'氷',kw:['氷']},
+  {name:'紙皿・紙コップ・割り箸',kw:['紙皿','割り箸','紙コップ']},
+  {name:'グラス',kw:['グラス','食器','コップ']},
+  {name:'ゴミ袋',kw:['ゴミ袋']},
+  {name:'スマホの充電器',kw:['充電']}
+];
+
+const EMPTY=()=>({name:'',address:'',access:'',spots:[],items:[],asks:[],trash:{area:'',rows:[{kind:'燃えるゴミ',days:[]},{kind:'資源（びん・缶・ペット）',days:[]}],bagPlace:'',notes:''},slope:500});
+const SAMPLE=()=>({
+  name:'えなの家',
+  address:'東京都杉並区高円寺南3丁目',
+  access:'高円寺駅南口から徒歩9分。セブンの角を曲がって2軒目のマンション、3階。着いたらLINEして！',
+  spots:[{kind:'コンビニ',name:'セブン-イレブン 高円寺南3丁目店',min:2},{kind:'スーパー',name:'サミット 高円寺店',min:6},{kind:'駅',name:'高円寺駅 南口',min:9},{kind:'デリバリー',name:'ドミノ・ピザ 高円寺店',min:4}],
+  items:[
+    {cat:'play',name:'Switch',note:'自由に使ってOK。マリカ・スマブラ・桃鉄あり。コントローラー4つ。',ask:'コントローラーは手を拭いてから触ってね'},
+    {cat:'play',name:'ボドゲ',note:'ito、コヨーテ、ワードウルフのお題カードあり。棚の2段目。',ask:''},
+    {cat:'dish',name:'グラス・食器',note:'グラス6個とお皿はキッチン右の棚のものを使ってOK。',ask:'洗い物はシンクに置いてくれればOK'},
+    {cat:'dish',name:'紙皿・割り箸',note:'シンク下にストックあり。',ask:''},
+    {cat:'dish',name:'たこ焼き器',note:'電気式。コンロ下の棚に。',ask:''},
+    {cat:'food',name:'氷',note:'冷凍庫に製氷皿2つ分。足りなければ買ってきてね。',ask:''},
+    {cat:'food',name:'割り材',note:'炭酸水・烏龍茶が冷蔵庫に。',ask:''},
+    {cat:'rest',name:'泊まり用の布団',note:'1組だけあり。押し入れの上段。',ask:''},
+    {cat:'room',name:'トイレ',note:'玄関入ってすぐ右。ユニットバスです。',ask:'気持ち悪くなったら遠慮なくトイレへ'}
+  ],
+  asks:['ベッドには靴下のまま乗らないでね','帰る前にゴミだけ分けて袋に入れてね'],
+  trash:{area:'杉並区',rows:[{kind:'燃えるゴミ',days:[2,5]},{kind:'資源（びん・缶・ペット）',days:[4]},{kind:'古紙・段ボール',days:[1]}],bagPlace:'シンク下の引き出し。資源ゴミは玄関横の青いカゴへ。',notes:'ペットボトルはキャップとラベルを外す\n缶・びんは軽くすすぐ\n紙皿・割り箸・食べ残しは燃えるゴミ'},
+  slope:500
+});
+
+/* ---------- state ---------- */
+let MODE='loading'; // owner | guest | local
+let DB=null;
+let HOME=null;          // saved (what friends see)
+let DRAFT=null;         // owner's editing copy
+let LOG={visits:[]};
+let step=0, current=null, clearArmed=false;
+let NEAR={state:'idle',pick:{}};
+let ICAT='play';
+let TFETCH={state:'idle',res:null}; // idle | loading | done // idle | loading | done
+const G={item:0,total:6480,people:5,slope:null};
+let SHOPDOCS={}, SHOP_RO=false, resetArmed=false; // 買い出しリスト（全員で共有）
+
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const yen=n=>'¥'+Math.round(n).toLocaleString('ja-JP');
+const clone=o=>JSON.parse(JSON.stringify(o));
+const norm=h=>Object.assign(EMPTY(),h||{},{trash:Object.assign(EMPTY().trash,(h&&h.trash)||{})});
+const stable=o=>Array.isArray(o)?'['+o.map(stable).join(',')+']':(o&&typeof o==='object')?'{'+Object.keys(o).filter(k=>k!=='updatedAt').sort().map(k=>JSON.stringify(k)+':'+stable(o[k])).join(',')+'}':JSON.stringify(o);
+const same=(a,b)=>stable(a)===stable(b);
+const lsGet=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}};
+const lsSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const mapUrl=q=>'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(q);
+const hasHome=h=>h&&h.name&&h.name.trim();
+
+let toastTimer;
+function toast(msg){const t=$('#toast');t.textContent=msg;t.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.hidden=true,2600)}
+function tick(){const d=new Date();$('#clock').textContent=d.getHours()+':'+String(d.getMinutes()).padStart(2,'0')}
+tick();setInterval(tick,30000);
+
+const IC={
+  home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>',
+  cart:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.4 11h10.2L20 8H6.3"/><circle cx="9" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/></svg>',
+  trash:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>',
+  yen:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4l6 8 6-8M12 12v8M7 13h10M7 17h10"/></svg>',
+  pin:'<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>'
+};
+
+/* ---------- persistence ---------- */
+async function saveHome(){
+  const next=clone(DRAFT);
+  if(same(next,HOME))return true;
+  if(MODE==='owner'){
+    try{await DB.doc(HOME_PATH).set(Object.assign({},next,{updatedAt:Date.now()}));}
+    catch(e){toast('保存できませんでした。通信状態を確かめてもう一度押してください');return false}
+  }else{lsSet('oshiori-home',next)}
+  HOME=next;lsSet('oshiori-draft',null);
+  return true;
+}
+async function saveLog(){
+  if(MODE==='owner'){try{await DB.doc(LOG_PATH).set(LOG)}catch(e){toast('記録できませんでした');return false}}
+  else lsSet('oshiori-log',LOG);
+  return true;
+}
+function stashDraft(){lsSet('oshiori-draft',DRAFT)}
+
+/* ---------- scenes ---------- */
+function renderScenes(){
+  if(MODE==='guest'){$('#story').hidden=true;$('#stage').classList.add('solo');return}
+  $('#story').hidden=false;$('#stage').classList.remove('solo');
+  $('#scenes').innerHTML=SCENES.map((s,i)=>`<li><button type="button" data-go="${s.id}" aria-current="${s.id===current}">
+    <span class="n">${i+1}</span><span><span class="when">${s.when}</span><span class="what">${s.what}</span><span class="why">${s.why}</span></span></button></li>`).join('');
+  $('#modeNote').textContent=MODE==='owner'
+    ?''
+    :(DEMO?'これは体験版です。見本の家が入っていて、自由に書き換えて試せます。入力した内容はあなたのブラウザの中だけに保存され、ほかの人には見えません。地図・ゴミの日・PayPayは見本です。':'この表示では共有ストレージが使えないため、登録内容はこのブラウザの中だけに保存されます。');
+}
+
+/* ---------- host: register (5 steps) ---------- */
+function statusChip(){
+  const dirty=!same(DRAFT,HOME);
+  return dirty?'<span class="status dirty"><i></i>未保存の変更あり</span>':(hasHome(HOME)?'<span class="status ok"><i></i>保存済み・友達に表示中</span>':'<span class="status"><i></i>まだ登録されていません</span>');
+}
+function hostForm(){
+  const d=DRAFT, s=STEPS[step];
+  const blank=!hasHome(d)&&!d.spots.length&&!d.items.length;
+  let body='';
+  if(step===0) body=`
+    <div class="field"><label for="f-name">家の呼び方 <span class="muted">（必須）</span></label><input class="input" id="f-name" data-f="name" value="${esc(d.name)}" placeholder="例：えなの家"></div>
+    <div class="field"><label for="f-addr">住所 <span class="muted">（部屋番号は書かなくてOK）</span></label><input class="input" id="f-addr" data-f="address" value="${esc(d.address)}" placeholder="例：東京都杉並区高円寺南3丁目"></div>
+    <div class="field"><label for="f-access">行き方・目印 <span class="muted">（任意）</span></label><textarea class="input" id="f-access" data-f="access" rows="3" placeholder="例：駅の南口から徒歩9分。コンビニの角を曲がって2軒目のマンション、3階。">${esc(d.access)}</textarea></div>
+    <p class="small muted">友達は住所をタップするとGoogleマップで開けます。</p>`;
+  if(step===1){
+    const added=n=>d.spots.some(p=>p.name===n);
+    const picks=NEARBY_SAMPLE.filter((c,i)=>NEAR.pick[i]&&!added(c.name)).length;
+    body=`
+    <div class="locate">
+      <div class="head"><b>現在地から探す</b>
+        <button type="button" class="locbtn" data-act="locate" ${NEAR.state==='loading'?'disabled':''}>${NEAR.state==='loading'?'<span class="spin"></span>探しています…':IC.pin+(NEAR.state==='done'?'もう一度探す':'近くのお店を探す')}</button></div>
+      ${NEAR.state==='idle'?'<span class="small muted">家にいるときに押すと、近くのコンビニ・スーパー・駅などを徒歩時間つきで一覧にします。</span>':''}
+      ${NEAR.state==='done'?`<div class="cands">${NEARBY_SAMPLE.map((c,i)=>`<label class="cand ${added(c.name)?'added':''}"><input type="checkbox" data-pick="${i}" ${added(c.name)?'checked disabled':(NEAR.pick[i]?'checked':'')}><span><span class="kind">${c.kind}</span>${esc(c.name)}</span><span class="small muted kbd">${added(c.name)?'追加済み':'徒歩'+c.min+'分・'+c.m+'m'}</span></label>`).join('')}</div>
+        <button type="button" class="primary" data-act="addpicked" ${picks?'':'disabled'}>${picks?`選んだ${picks}件を追加`:'追加するお店を選んでください'}</button>
+        <span class="small muted">※ デモのため見本の候補を表示しています（本番では現在地から取得）</span>`:''}
+    </div>
+    <div class="lbl" style="margin-bottom:6px">登録したお店</div>
+    ${d.spots.length?d.spots.map((p,i)=>`<div class="editrow">
+      <div class="mini">
+        <select class="input" id="sp-k-${i}" data-f="spots.${i}.kind" aria-label="種類">${SPOT_KINDS.map(k=>`<option ${k===p.kind?'selected':''}>${k}</option>`).join('')}</select>
+        <input class="input" id="sp-n-${i}" data-f="spots.${i}.name" value="${esc(p.name)}" placeholder="店・駅の名前" aria-label="名前">
+        <input class="input kbd" id="sp-m-${i}" data-f="spots.${i}.min" data-num="1" inputmode="numeric" value="${esc(p.min)}" placeholder="分" aria-label="徒歩（分）">
+      </div>
+      <div class="input-row" style="justify-content:space-between"><span class="small muted">種類・名前・徒歩○分</span><button type="button" class="del" data-del="spots.${i}">削除</button></div>
+    </div>`).join(''):'<div class="empty">まだありません。上の「近くのお店を探す」か、下のボタンから追加してください</div>'}
+    <div class="lbl" style="margin:10px 0 6px">見つからないお店は手で追加</div>
+    <div class="chips">${SPOT_KINDS.map(k=>`<button type="button" class="chip add" data-addspot="${k}">${k}</button>`).join('')}</div>`;
+  }
+  if(step===2){
+    const cat=ITEM_CATS.find(c=>c.id===ICAT);
+    const idx=d.items.map((it,i)=>[it,i]).filter(([it])=>catOf(it)===ICAT);
+    body=`
+    <div class="cattabs" role="group" aria-label="カテゴリ">${ITEM_CATS.map(c=>{const n=d.items.filter(it=>catOf(it)===c.id).length;return `<button type="button" data-icat="${c.id}" aria-pressed="${c.id===ICAT}">${c.t}<span class="c">${n}</span></button>`}).join('')}</div>
+    ${idx.length?idx.map(([it,i])=>`<div class="editrow">
+      <div class="top"><input class="input" id="it-n-${i}" data-f="items.${i}.name" value="${esc(it.name)}" placeholder="名前" aria-label="名前"><button type="button" class="del" data-del="items.${i}">削除</button></div>
+      <input class="input" id="it-d-${i}" data-f="items.${i}.note" value="${esc(it.note)}" placeholder="説明（どこにある・自由に使ってOK など）" aria-label="説明">
+      <input class="input" id="it-a-${i}" data-f="items.${i}.ask" value="${esc(it.ask)}" placeholder="この物についてのお願い（任意）" aria-label="この物についてのお願い">
+    </div>`).join(''):`<div class="empty">「${cat.t}」はまだありません</div>`}
+    <div class="lbl" style="margin:10px 0 6px">「${cat.t}」のよくあるものから追加</div>
+    <div class="chips">${ITEM_PRESETS[ICAT].map(([n])=>`<button type="button" class="chip add" data-additem="${esc(n)}" ${d.items.some(x=>x.name===n)?'disabled':''}>${esc(n)}</button>`).join('')}
+      <button type="button" class="chip add" data-additem="">自分で追加</button></div>
+    <p class="small muted" style="margin-top:12px">上のタブでカテゴリを切り替えられます。友達の画面でもカテゴリごとにまとまって表示されます。</p>`;
+  }
+  if(step===3) body=`
+    <div class="field"><label for="f-newask">お願いしたいことを自分の言葉で</label>
+      <textarea class="input" id="f-newask" rows="2" placeholder="例：ぬいぐるみは触らないでね"></textarea>
+      <button type="button" class="primary" data-act="addask" style="margin-top:4px">追加</button></div>
+    <div class="lbl" style="margin:16px 0 6px">追加したお願い（${d.asks.length}件）</div>
+    ${d.asks.length?`<div>${d.asks.map((a,i)=>`<div class="askrow"><span>${esc(a)}</span><button type="button" class="del" data-del="asks.${i}">削除</button></div>`).join('')}</div>`:'<div class="empty">お願いがなければ空のままでOK</div>'}
+    <p class="small muted" style="margin-top:10px">物に関するお願いは、前のステップの「この物についてのお願い」に書くと、その物の説明と一緒に表示されます。</p>
+    <div class="sec" style="border-top:1px solid var(--line);padding-top:14px"><h3>言い方に迷ったら <small>タップで追加</small></h3>
+      <div class="chips">${ASK_PRESETS.map(a=>`<button type="button" class="chip add" data-addask="${esc(a)}" ${d.asks.includes(a)?'disabled':''}>${esc(a)}</button>`).join('')}</div></div>`;
+  if(step===4){
+    const city=cityOf(d.address);
+    const f=TFETCH.res;
+    body=`
+    <div class="locate">
+      <div class="head"><b>住所からゴミの日を取得</b>
+        <button type="button" class="locbtn" data-act="fetchtrash" ${TFETCH.state==='loading'||!d.address.trim()?'disabled':''}>${TFETCH.state==='loading'?'<span class="spin"></span>取得中…':IC.trash.replace('<svg','<svg width="14" height="14"')+(TFETCH.state==='done'?'もう一度取得':'自動で取得')}</button></div>
+      ${!d.address.trim()?`<span class="small muted">先にステップ①で住所を入れると使えます。 <button type="button" class="linkbtn" data-step="0">住所を入れる</button></span>`:''}
+      ${d.address.trim()&&TFETCH.state==='idle'?`<span class="small muted">「${esc(d.address)}」から、${esc(city||'市区町村')}のゴミの日と分け方を取得します。</span>`:''}
+      ${TFETCH.state==='done'&&f?`<div class="fetched"><div class="small" style="margin:2px 0 4px"><b>${esc(f.area||'この地域')}</b>の収集日</div>
+          <table class="tbl"><tbody>${f.rows.map(r=>`<tr><td>${esc(r.kind)}</td><td>${[1,2,3,4,5,6,0].filter(w=>r.days.includes(w)).map(w=>W[w]).join('・')}</td><td></td></tr>`).join('')}</tbody></table></div>
+        <button type="button" class="primary" data-act="applytrash">この内容で入れる</button>
+        <span class="small muted">※ デモのため見本のデータです。実際の収集日とは異なる場合があります。入れたあとで手直しできます。</span>`:''}
+    </div>
+    <div class="field"><label for="f-area">市区町村</label><input class="input" id="f-area" data-f="trash.area" value="${esc(d.trash.area)}" placeholder="例：杉並区"></div>
+    <div class="lbl" style="margin-bottom:6px">ゴミの日</div>
+    ${d.trash.rows.map((r,i)=>`<div class="editrow">
+      <div class="top"><input class="input" id="tr-k-${i}" data-f="trash.rows.${i}.kind" value="${esc(r.kind)}" placeholder="種類（例：燃えるゴミ）" aria-label="ゴミの種類"><button type="button" class="del" data-del="trash.rows.${i}">削除</button></div>
+      <div class="days" role="group" aria-label="${esc(r.kind)}の曜日">${[1,2,3,4,5,6,0].map(w=>`<button type="button" data-day="${i}.${w}" aria-pressed="${r.days.includes(w)}">${W[w]}</button>`).join('')}</div>
+    </div>`).join('')}
+    <button type="button" class="chip add" data-act="addtrash">種類を追加</button>
+    <div class="field" style="margin-top:14px"><label for="f-bag">ゴミ袋・ゴミ箱の場所</label><input class="input" id="f-bag" data-f="trash.bagPlace" value="${esc(d.trash.bagPlace)}" placeholder="例：シンク下の引き出し"></div>
+    <div class="field"><label for="f-notes">分け方のメモ（1行に1つ）</label><textarea class="input" id="f-notes" data-f="trash.notes" rows="3" placeholder="例：ペットボトルはラベルを外す">${esc(d.trash.notes)}</textarea></div>
+    <div class="field"><label>精算のとき「家主の負担を軽くする」の初期値</label>
+      <div class="seg">${[0,300,500,1000].map(v=>`<button type="button" data-slope="${v}" aria-pressed="${d.slope===v}">${v?yen(v):'なし'}</button>`).join('')}</div>
+      <span class="small muted">友達側の割り勘画面でも変えられます</span></div>`;
+  }
+  return `
+  <div class="hdr" style="padding-bottom:6px"><div class="eyebrow" style="display:flex;justify-content:space-between"><span>家主用 · ${step+1}/5</span>${statusChip()}</div><h2>${s.t}</h2>
+    <nav class="progress" aria-label="登録ステップ">${STEPS.map((x,i)=>`<button type="button" data-step="${i}" aria-current="${i===step}" class="${i<step?'done':''}">${x.t}</button>`).join('')}</nav></div>
+  ${DEMO&&step===0&&!blank?`<div class="samplebar"><span>見本の家が入っています。自由に書き換えて試せます</span></div>`:''}
+  ${blank&&step===0?`<div class="samplebar"><span>どんな感じか見たいときは</span><button type="button" class="ghost" data-act="sample">見本を入れる</button></div>`:''}
+  <div class="where"><span>${IC.home.replace('<svg','<svg width="16" height="16" style="flex:none;margin-top:1px"')}</span><span><b>友達の画面では：</b>${s.where}</span></div>
+  ${body}
+  ${step===0&&!blank?`<p style="margin-top:18px"><button type="button" class="linkbtn" data-act="clear">${clearArmed?'もう一度押すと全部空になります':'入力内容を全部消す'}</button></p>`:''}`;
+}
+function formFooter(){
+  return `${step>0?'<button type="button" class="secondary" data-act="prev">戻る</button>':''}
+  <button type="button" class="primary" data-act="next">${step<4?'保存して次へ':'保存して共有へ'}</button>`;
+}
+
+/* ---------- host: share ---------- */
+function shareText(){return `今日うちでいいよ〜！場所とか近くのコンビニここ見てね\n${PAGE_URL}`}
+function hostShare(){
+  if(!hasHome(HOME))return `<div class="hdr"><h2>URLを送る</h2></div><div class="empty">先に家の情報を登録してください</div><div class="sec"><button type="button" class="primary" data-go="host-form">登録する</button></div>`;
+  return `
+  <button type="button" class="back" data-go="host-form">← 登録内容を編集</button>
+  <div class="hdr" style="padding-top:0"><div class="eyebrow">家主用</div><h2>URLを送る</h2><div class="sub">このメッセージをLINEグループに貼るだけ</div></div>
+  <div class="field"><label for="share-msg">送るメッセージ</label><textarea class="input" id="share-msg" rows="3">${esc(shareText())}</textarea></div>
+  <button type="button" class="primary" data-act="copy">メッセージをコピー</button>
+
+  <div class="sec"><h3>LINEではこう見えます</h3>
+    <div class="line-mock">
+      <div class="linebar"><span>‹ 宅飲みグループ</span><span>${$('#clock').textContent}</span></div>
+      <div class="bubble" id="bubble">${esc(shareText())}</div>
+    </div>
+  </div>
+  ${DEMO?`<div class="sec card small"><b>体験版について</b><br>この体験版では、登録した内容はあなたのブラウザの中だけに保存され、ほかの人には見えません。実際のサービスでは、このURLを開いた友達に「友達の画面」が表示されます。</div>`:''}
+  <div class="sec"><button type="button" class="secondary" data-go="guest-guide">友達の画面を見てみる</button></div>`;
+}
+
+/* ---------- host: log ---------- */
+function hostLog(){
+  const v=(LOG.visits||[]).slice().sort((a,b)=>b.date<a.date?-1:1);
+  const total=v.reduce((a,r)=>a+(+r.n||0),0);
+  const today=new Date();const iso=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
+  return `
+  <div class="hdr"><div class="eyebrow">家主用 · 自分だけに見えます</div><h2>${esc(HOME&&HOME.name||'わたしの家')}の来客ログ</h2></div>
+  <div class="stat"><div><span class="small muted">これまで</span><b>${v.length}回</b></div><div><span class="small muted">来てくれた人</span><b>のべ${total}人</b></div></div>
+  <div class="sec card"><h3 style="margin:0 0 8px;font-size:13px">今日の宅飲みを記録</h3>
+    <div class="mini" style="grid-template-columns:1fr 1fr 70px">
+      <input class="input" type="date" id="lg-date" value="${iso}" aria-label="日付">
+      <input class="input" id="lg-who" placeholder="誰と（例：高校の友達）" aria-label="誰と">
+      <input class="input kbd" id="lg-n" inputmode="numeric" placeholder="人数" aria-label="人数">
+    </div>
+    <input class="input" id="lg-memo" style="margin-top:6px" placeholder="メモ（例：たこパした）" aria-label="メモ">
+    <button type="button" class="primary" style="margin-top:10px" data-act="addlog">記録する</button>
+  </div>
+  <div class="sec"><h3>記録</h3>
+    ${v.length?`<div class="log">${v.map(r=>`<div class="row"><span class="d">${esc(r.date.slice(5).replace('-','/'))}</span><span>${esc(r.who||'—')}<span class="small muted" style="display:block">${r.memo?esc(r.memo):'&nbsp;'}</span></span><span class="small muted">${esc(r.n||'?')}人 <button type="button" class="del" data-dellog="${esc(r.id)}" aria-label="この記録を削除">×</button></span></div>`).join('')}</div>`:'<div class="empty">まだ記録はありません</div>'}
+  </div>`;
+}
+
+/* ---------- guest ---------- */
+function guestTop(sub){
+  return `${MODE!=='guest'?`<div class="guestbanner"><span>友達にはこう見えます</span><button type="button" class="back" style="padding:0" data-go="host-form">登録画面へ</button></div>`:''}
+  <div class="hdr"><div class="eyebrow">おうちのしおり</div><h2>${esc(HOME.name)}</h2><div class="sub">${sub}</div></div>`;
+}
+function guestEmpty(){
+  return `<div class="loading"><div><b>おうちのしおり</b>まだ家の情報が登録されていません。<br>家主が登録するとここに表示されます。</div></div>`;
+}
+function guestGuide(){
+  const h=HOME;
+  const items=h.items.filter(i=>i.name.trim());
+  if(G.item>=items.length)G.item=0;
+  const sel=items[G.item];
+  const asks=h.asks.filter(a=>a.trim());
+  const spots=h.spots.filter(p=>p.name.trim()).slice().sort((a,b)=>(+a.min||99)-(+b.min||99));
+  const area=(h.address.match(/^(.+?[都道府県])?(.+?[市区町村])/)||[''])[0];
+  return guestTop('場所と、うちにあるもの')+`
+  <div class="card placecard">
+    ${h.address?`<div class="addr">${esc(h.address)}</div><div><a class="maplink" href="${mapUrl(h.address)}" target="_blank" rel="noopener">${IC.pin}Googleマップで開く</a></div>`:''}
+    ${h.access?`<div class="small muted" style="white-space:pre-wrap">${esc(h.access)}</div>`:''}
+  </div>
+  ${spots.length?`<div class="sec"><h3>近くのお店</h3><div class="spotlist">${spots.map(p=>`<div class="spot"><span><span class="kind">${esc(p.kind)}</span>${esc(p.name)}</span><span class="r"><span class="small muted kbd">${p.min?'徒歩'+esc(p.min)+'分':''}</span><a class="maplink" href="${mapUrl(p.name+' '+area)}" target="_blank" rel="noopener" aria-label="${esc(p.name)}を地図で開く">${IC.pin}</a></span></div>`).join('')}</div></div>`:''}
+  ${items.length?`<div class="sec"><h3>うちにあるもの <small>タップで詳細</small></h3>
+    ${ITEM_CATS.map(c=>{const g=items.map((it,i)=>[it,i]).filter(([it])=>catOf(it)===c.id);return g.length?`<div class="catlabel">${c.t}</div><div class="itemgrid">${g.map(([it,i])=>`<button type="button" class="chip" data-gitem="${i}" aria-pressed="${i===G.item}">${esc(it.name)}</button>`).join('')}</div>`:''}).join('')}
+    ${sel?`<div class="detail">${esc(sel.note)||'<span class="muted">自由に使ってOK</span>'}${sel.ask?`<span class="aside">※ ${esc(sel.ask)}</span>`:''}</div>`:''}
+  </div>`:''}
+  ${asks.length?`<div class="sec softbox"><h3>ちょっとだけお願い</h3><ul class="asks">${asks.map(t=>`<li>${esc(t)}</li>`).join('')}</ul></div>`:''}`;
+}
+function guestShop(){
+  const h=HOME;
+  const items=h.items.filter(i=>i.name.trim());
+  const match=kw=>kw.length?items.find(it=>kw.some(k=>(it.name+it.note).includes(k))):null;
+  const base=SHOP.map((r,i)=>({id:'base'+i,name:r.name,at:match(r.kw),custom:false})).filter(r=>!r.at);
+  const custom=Object.entries(SHOPDOCS).filter(([id,d])=>!id.startsWith('base')&&d&&d.name).map(([id,d])=>({id,name:d.name,custom:true,t:d.createdAt||0})).sort((a,b)=>a.t-b.t);
+  const list=base.concat(custom).map(r=>({...r,done:!!(SHOPDOCS[r.id]&&SHOPDOCS[r.id].done)}));
+  const left=list.filter(r=>!r.done).length;
+  const nearest=h.spots.filter(p=>p.name.trim()&&p.kind!=='駅'&&p.kind!=='デリバリー').sort((a,b)=>(+a.min||99)-(+b.min||99))[0];
+  return guestTop('買い出しリスト')+`
+  ${nearest?`<div class="card small">いちばん近いのは <b>${esc(nearest.name)}</b>${nearest.min?`（徒歩${esc(nearest.min)}分）`:''}</div>`:''}
+  <div class="sec"><h3>買うもの <small>${MODE==='local'?'このブラウザだけに保存':'みんなで共有・あと'+left+'つ'}</small></h3>
+    <div class="shop">${list.map(r=>`<label class="row ${r.done?'done':''}"><input type="checkbox" data-sdone="${r.id}" ${r.done?'checked':''} ${SHOP_RO?'disabled':''}><span class="nm">${esc(r.name)}</span><span class="r">${r.custom?`<span class="pill added">追加</span>${SHOP_RO?'':`<button type="button" class="x" data-sdel="${r.id}" aria-label="${esc(r.name)}をリストから消す">×</button>`}`:'<span class="pill buy">買う</span>'}</span></label>`).join('')}</div>
+    ${SHOP_RO?`<p class="small muted" style="margin-top:8px">リストに追加・チェックするには、家主に「コントリビューター」として招待してもらってください。</p>`:`
+    <div class="shopadd"><input class="input" id="shop-new" placeholder="例：ポテチ、アイス、炭酸水" aria-label="買うものを追加"><button type="button" class="ghost" data-act="shopadd">追加</button></div>
+    <p class="small muted" style="margin:6px 0 0">追加したものは、ほかの参加者と家主の画面にも出ます。</p>`}
+    ${MODE!=='guest'?`<p style="margin-top:12px"><button type="button" class="linkbtn" data-act="shopreset">${resetArmed?'もう一度押すと、追加分とチェックを全部消します':'リストをリセット（次の宅飲み用）'}</button></p>`:''}
+  </div>
+  ${['food','dish'].map(cid=>{const c=ITEM_CATS.find(x=>x.id===cid);const g=items.filter(it=>catOf(it)===cid);return g.length?`<div class="sec"><h3>家にある${c.t} <small>買わなくてOK</small></h3><div class="shop">${g.map(it=>`<div class="row"><span></span><span>${esc(it.name)}<span class="small muted" style="display:block">${esc(it.note)}</span></span><span class="pill have">あるよ</span></div>`).join('')}</div></div>`:''}).join('')}`;
+}
+async function shopWrite(id,data){
+  const prev=SHOPDOCS[id];
+  if(data)SHOPDOCS[id]=data;else delete SHOPDOCS[id];
+  if(MODE==='local'){lsSet('oshiori-shop',SHOPDOCS);return true}
+  try{const ref=DB.doc('shop/'+id);if(data)await ref.set(data);else await ref.delete();return true}
+  catch(e){
+    if(prev)SHOPDOCS[id]=prev;else delete SHOPDOCS[id];
+    if(e&&e.code==='invalid_argument'){SHOP_RO=true;toast('追加・チェックするには、家主に「コントリビューター」として招待してもらってください')}
+    else toast('保存できませんでした。もう一度試してください');
+    return false;
+  }
+}
+function nextDate(days){
+  const now=new Date();
+  for(let k=0;k<=7;k++){const d=new Date(now);d.setDate(now.getDate()+k);if(days.includes(d.getDay()))return {d,k}}
+  return null;
+}
+function guestTrash(){
+  const t=HOME.trash;
+  const rows=t.rows.filter(r=>r.kind.trim()).map(r=>({...r,n:nextDate(r.days)}));
+  const ks=rows.filter(r=>r.n).map(r=>r.n.k);const soon=ks.length?Math.min(...ks):-1;
+  const notes=(t.notes||'').split('\n').map(s=>s.trim()).filter(Boolean);
+  const label=n=>!n?'—':n.k===0?'今日':n.k===1?'明日':(n.d.getMonth()+1)+'/'+n.d.getDate()+'('+W[n.d.getDay()]+')';
+  const trashAsk=HOME.asks.find(a=>a.includes('ゴミ'));
+  return guestTop(`${esc(t.area)||'この家'}のゴミの日・分け方`)+`
+  ${rows.length?`<div class="card" style="padding:4px 12px"><table class="tbl"><tbody>${rows.map(r=>`<tr><td>${esc(r.kind)}</td><td>${r.days.length?[1,2,3,4,5,6,0].filter(w=>r.days.includes(w)).map(w=>W[w]).join('・'):'—'}</td><td>${r.n?`<span class="next ${r.n.k===soon?'':'later'}">次は${label(r.n)}</span>`:''}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">ゴミの日は登録されていません</div>'}
+  ${notes.length?`<div class="sec"><h3>分け方</h3><ul class="asks">${notes.map(n=>`<li>${esc(n)}</li>`).join('')}</ul></div>`:''}
+  ${(t.bagPlace||trashAsk)?`<div class="sec softbox"><h3>この家では</h3><ul class="asks">${t.bagPlace?`<li>ゴミ袋：${esc(t.bagPlace)}</li>`:''}${trashAsk?`<li>${esc(trashAsk)}</li>`:''}</ul></div>`:''}`;
+}
+function calc(){
+  const slope=G.slope??HOME.slope??0;
+  const even=G.total/G.people;
+  const host=Math.max(0,even-slope);
+  const friend=G.people>1?(G.total-host)/(G.people-1):G.total;
+  return {slope,even,host:Math.floor(host),friend:Math.ceil(friend)};
+}
+function guestSplit(){
+  const c=calc();
+  return guestTop('今日の精算')+`
+  <div class="field"><label for="g-total">合計</label><input class="input big" id="g-total" inputmode="numeric" value="${yen(G.total)}"></div>
+  <div class="field"><label>人数（家主ふくむ）</label>
+    <div class="stepper"><button type="button" data-ppl="-1" aria-label="1人減らす">−</button><output>${G.people}人</output><button type="button" data-ppl="1" aria-label="1人増やす">＋</button></div></div>
+  <div class="field"><label>家主の負担を軽くする</label>
+    <div class="seg">${[0,300,500,1000].map(v=>`<button type="button" data-gslope="${v}" aria-pressed="${c.slope===v}">${v?yen(v):'なし'}</button>`).join('')}</div>
+    <span class="small muted">場所代のかわりに。友達1人あたり ${yen(Math.max(0,c.friend-Math.ceil(c.even)))} くらい増えます</span></div>
+  <div class="sec"><h3>1人あたり</h3><div class="split">
+    <div class="row"><span>友達（${G.people-1}人）</span><b>${yen(c.friend)}</b></div>
+    <div class="row"><span>家主</span><b>${yen(c.host)}</b></div></div></div>
+  <div class="sec"><button type="button" class="primary" data-act="paypay">PayPayで送る</button>
+    <p class="small muted" style="text-align:center;margin:6px 0 0">デモのため送金はしません</p></div>`;
+}
+
+/* ---------- router ---------- */
+const VIEWS={'host-form':hostForm,'host-share':hostShare,'host-log':hostLog,'guest-guide':guestGuide,'guest-shop':guestShop,'guest-trash':guestTrash,'guest-split':guestSplit};
+const TABS=[['guest-guide','案内','home'],['guest-shop','買い出し','cart'],['guest-trash','ゴミ','trash'],['guest-split','割り勘','yen']];
+function go(id,keep){
+  if(MODE==='guest'&&!id.startsWith('guest'))id='guest-guide';
+  current=id;
+  const v=$('#view');const top=v.scrollTop;
+  const guest=id.startsWith('guest');
+  const keepIn=keep&&document.activeElement&&document.activeElement.id==='shop-new';const keepVal=$('#shop-new')?$('#shop-new').value:'';
+  v.innerHTML=(guest&&!hasHome(HOME))?guestEmpty():VIEWS[id]();
+  const sn=$('#shop-new');if(sn&&keep){sn.value=keepVal;if(keepIn)sn.focus()}
+  v.scrollTop=keep?top:0;
+  const tb=$('#tabbar');tb.hidden=!guest||!hasHome(HOME);
+  if(!tb.hidden)tb.innerHTML=TABS.map(([t,l,ic])=>`<button type="button" data-go="${t}" aria-current="${t===id}">${IC[ic]}<span>${l}</span></button>`).join('');
+  const fb=$('#footbar');fb.hidden=id!=='host-form';if(!fb.hidden)fb.innerHTML=formFooter();
+  renderScenes();
+  const cur=document.querySelector('.scenes [aria-current="true"]');
+  if(cur&&window.matchMedia('(max-width:860px)').matches)cur.scrollIntoView({block:'nearest',inline:'center'});
+}
+const rerender=()=>go(current,true);
+
+/* ---------- path helpers ---------- */
+function setPath(obj,path,val){const k=path.split('.');let o=obj;for(let i=0;i<k.length-1;i++)o=o[k[i]];o[k[k.length-1]]=val}
+function delPath(obj,path){const k=path.split('.');const idx=+k.pop();let o=obj;for(const s of k)o=o[s];o.splice(idx,1)}
+
+/* ---------- events ---------- */
+document.addEventListener('click',async e=>{
+  const b=e.target.closest('button');if(!b||b.disabled)return;
+  const d=b.dataset;
+  if(d.go){if(current==='host-form'&&!same(DRAFT,HOME)&&hasHome(DRAFT)){if(!(await saveHome()))return}go(d.go);return}
+  if(d.step!==undefined){if(!same(DRAFT,HOME)&&hasHome(DRAFT))await saveHome();step=+d.step;clearArmed=false;go('host-form');return}
+  if(d.del){delPath(DRAFT,d.del);stashDraft();rerender();return}
+  if(d.addspot){DRAFT.spots.push({kind:d.addspot,name:'',min:''});stashDraft();rerender();focusLast('[id^="sp-n-"]');return}
+  if(d.icat){ICAT=d.icat;rerender();return}
+  if(d.additem!==undefined){const p=presetOf(d.additem);DRAFT.items.push({cat:ICAT,name:d.additem,note:p?p.note:'',ask:''});stashDraft();rerender();focusLast(p?'[id^="it-d-"]':'[id^="it-n-"]');return}
+  if(d.addask){DRAFT.asks.push(d.addask);stashDraft();rerender();return}
+  if(d.day){const [i,w]=d.day.split('.').map(Number);const r=DRAFT.trash.rows[i];r.days=r.days.includes(w)?r.days.filter(x=>x!==w):r.days.concat(w);stashDraft();rerender();return}
+  if(d.slope!==undefined){DRAFT.slope=+d.slope;stashDraft();rerender();return}
+  if(d.gitem!==undefined){G.item=+d.gitem;rerender();return}
+  if(d.gslope!==undefined){G.slope=+d.gslope;rerender();return}
+  if(d.ppl){G.people=Math.min(30,Math.max(2,G.people+(+d.ppl)));rerender();return}
+  if(d.sdel){e.preventDefault();await shopWrite(d.sdel,null);rerender();return}
+  if(d.dellog){LOG.visits=LOG.visits.filter(v=>v.id!==d.dellog);await saveLog();rerender();return}
+  switch(d.act){
+    case 'sample':DRAFT=SAMPLE();stashDraft();rerender();toast('見本を入れました。自分の家に書き換えてください');break;
+    case 'clear':if(!clearArmed){clearArmed=true;rerender();break}clearArmed=false;DRAFT=EMPTY();stashDraft();rerender();break;
+    case 'addask':{const inp=$('#f-newask');const v=inp.value.trim();if(!v){inp.focus();break}DRAFT.asks.push(v);stashDraft();rerender();toast('追加しました');setTimeout(()=>{const n=$('#f-newask');if(n)n.focus()},0);break}
+    case 'locate':
+      // 本番：navigator.geolocation で現在地を取り、地図APIで周辺のお店を検索する
+      NEAR={state:'loading',pick:{}};rerender();
+      setTimeout(()=>{NEAR.state='done';NEARBY_SAMPLE.forEach((c,i)=>{if(c.min<=6&&!DRAFT.spots.some(p=>p.name===c.name))NEAR.pick[i]=true});if(current==='host-form'&&step===1)rerender()},1200);
+      break;
+    case 'addpicked':{
+      const add=NEARBY_SAMPLE.filter((c,i)=>NEAR.pick[i]&&!DRAFT.spots.some(p=>p.name===c.name));
+      add.forEach(c=>DRAFT.spots.push({kind:c.kind,name:c.name,min:String(c.min)}));
+      NEAR.pick={};stashDraft();rerender();toast(add.length+'件追加しました');break}
+    case 'fetchtrash':{
+      // 本番：住所→市区町村を判定し、自治体のゴミ収集データを取得する
+      const city=cityOf(DRAFT.address);
+      TFETCH={state:'loading',res:null};rerender();
+      setTimeout(()=>{const src=TRASH_SAMPLE[city]||TRASH_SAMPLE._default;TFETCH={state:'done',res:{area:city,rows:clone(src.rows),notes:src.notes}};if(current==='host-form'&&step===4)rerender()},1200);
+      break}
+    case 'applytrash':{
+      const f=TFETCH.res;if(!f)break;
+      DRAFT.trash.area=f.area||DRAFT.trash.area;DRAFT.trash.rows=clone(f.rows);DRAFT.trash.notes=f.notes;
+      TFETCH={state:'idle',res:null};stashDraft();rerender();toast('ゴミの日と分け方を入れました');break}
+    case 'addtrash':DRAFT.trash.rows.push({kind:'',days:[]});stashDraft();rerender();focusLast('[id^="tr-k-"]');break;
+    case 'prev':step=Math.max(0,step-1);go('host-form');break;
+    case 'next':
+      if(!DRAFT.name.trim()){step=0;go('host-form');toast('家の呼び方を入れてください');setTimeout(()=>$('#f-name')&&$('#f-name').focus(),0);break}
+      b.disabled=true;
+      if(!(await saveHome())){b.disabled=false;break}
+      if(step<4){step++;go('host-form');toast('保存しました')}else{go('host-share');toast('保存しました。友達の画面に反映されています')}
+      break;
+    case 'copy':{const ta=$('#share-msg');const txt=ta.value;
+      try{navigator.clipboard.writeText(txt).then(()=>toast('コピーしました。LINEに貼ってください'),()=>{ta.select();toast('選択しました。長押しでコピーできます')})}catch(err){ta.select();toast('選択しました。長押しでコピーできます')}break}
+    case 'addlog':{const date=$('#lg-date').value;if(!date){toast('日付を入れてください');break}
+      LOG.visits=(LOG.visits||[]).concat({id:Date.now().toString(36),date,who:$('#lg-who').value.trim(),n:parseInt($('#lg-n').value,10)||'',memo:$('#lg-memo').value.trim()});
+      if(await saveLog()){rerender();toast('記録しました')}break}
+    case 'shopadd':{
+      const inp=$('#shop-new');const names=inp.value.split(/[、,，\n]/).map(x=>x.trim()).filter(Boolean);
+      if(!names.length){inp.focus();break}
+      inp.value='';
+      for(const n of names){const id='c'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);if(!(await shopWrite(id,{name:n.slice(0,40),done:false,createdAt:Date.now()})))break}
+      rerender();const n2=$('#shop-new');if(n2)n2.focus();break}
+    case 'shopreset':
+      if(!resetArmed){resetArmed=true;rerender();break}
+      resetArmed=false;
+      for(const id of Object.keys(SHOPDOCS)){if(!(await shopWrite(id,null)))break}
+      rerender();toast('リストをリセットしました');break;
+    case 'paypay':toast('デモのため送金は行いません');break;
+  }
+});
+function focusLast(sel){const els=document.querySelectorAll(sel);if(els.length)els[els.length-1].focus()}
+document.addEventListener('input',e=>{
+  const t=e.target;
+  if(t.dataset.f){let v=t.value;if(t.dataset.num)v=v.replace(/[^\d]/g,'');setPath(DRAFT,t.dataset.f,v);stashDraft();
+    const st=document.querySelector('.hdr .status');if(st)st.outerHTML=statusChip();return}
+  if(t.id==='share-msg'){const b=$('#bubble');if(b)b.textContent=t.value}
+});
+document.addEventListener('keydown',e=>{
+  if(e.target.id==='shop-new'&&e.key==='Enter'&&!e.isComposing){e.preventDefault();const b=document.querySelector('[data-act="shopadd"]');if(b)b.click();return}
+  if(e.target.id==='f-newask'&&e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();const b=document.querySelector('[data-act="addask"]');if(b)b.click()}
+});
+document.addEventListener('change',e=>{
+  const t=e.target;
+  if(t.dataset.f&&t.tagName==='SELECT'){setPath(DRAFT,t.dataset.f,t.value);stashDraft();return}
+  if(t.dataset.pick!==undefined){NEAR.pick[t.dataset.pick]=t.checked;rerender();return}
+  if(t.dataset.sdone!==undefined){const id=t.dataset.sdone;const cur=SHOPDOCS[id]||{};shopWrite(id,Object.assign({},cur,{done:t.checked})).then(()=>rerender());return}
+  if(t.id==='g-total'){const n=parseInt(t.value.replace(/[^\d]/g,''),10);G.total=isNaN(n)?0:n;rerender();return}
+});
+
+/* ---------- boot ---------- */
+async function boot(){
+  let db=null,user=null;
+  if(db){
+    DB=db;
+    const canEdit=user?await user.canEdit():false;
+    MODE=canEdit?'owner':'guest';
+    try{const s=await db.doc(HOME_PATH).get();HOME=s.exists?norm(s.data()):null}catch(e){HOME=null}
+    if(MODE==='owner'){
+      try{const l=await db.doc(LOG_PATH).get();if(l.exists)LOG=Object.assign({visits:[]},l.data())}catch(e){}
+    }
+    db.doc(HOME_PATH).onSnapshot(s=>{
+      const next=s.exists?norm(s.data()):null;if(next)delete next.updatedAt;
+      if(same(next,HOME))return;HOME=next;
+      if(current&&current!=='host-form')rerender();
+    },()=>{});
+    db.collection('shop').onSnapshot(q=>{
+      const m={};q.docs.forEach(d=>{m[d.id]=d.data()});SHOPDOCS=m;
+      if(current==='guest-shop')rerender();
+    },()=>{});
+  }else{
+    MODE='local';
+    HOME=lsGet('oshiori-home');if(HOME)HOME=norm(HOME);else if(DEMO)HOME=SAMPLE();
+    LOG=lsGet('oshiori-log')||{visits:[]};
+    SHOPDOCS=lsGet('oshiori-shop')||{};
+  }
+  if(HOME)delete HOME.updatedAt;
+  if(MODE!=='guest'){
+    const dr=lsGet('oshiori-draft');
+    DRAFT=dr?norm(dr):(HOME?clone(HOME):EMPTY());
+  }
+  go(MODE==='guest'?'guest-guide':(hasHome(HOME)&&!DEMO?'host-share':'host-form'));
+}
+boot();
+})();
+</script>
+</body>
+</html>
