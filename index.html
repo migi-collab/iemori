@@ -211,13 +211,6 @@ select.input{appearance:none;background-image:linear-gradient(45deg,transparent 
 .line-mock{background:#8CABD9;border-radius:16px;padding:12px;display:grid;gap:8px}
 .bubble{justify-self:end;max-width:90%;background:#8DE055;color:#111;border-radius:14px;padding:8px 12px;font-size:13px;white-space:pre-wrap;word-break:break-all}
 .linebar{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#fff;font-weight:700}
-.log{display:grid}
-.log .row{display:grid;grid-template-columns:64px 1fr auto;gap:10px;padding:10px 2px;border-bottom:1px solid var(--line);align-items:baseline}
-.log .row:last-child{border-bottom:0}
-.log .d{font-variant-numeric:tabular-nums;font-weight:700}
-.stat{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.stat div{background:var(--sunk);border-radius:12px;padding:10px 12px}
-.stat b{display:block;font-family:var(--display);font-size:22px;font-variant-numeric:tabular-nums}
 .loading{height:100%;display:grid;place-items:center;text-align:center;color:var(--muted)}
 .loading b{display:block;font-family:var(--display);font-size:22px;color:var(--ink)}
 .toast{position:absolute;left:16px;right:16px;bottom:90px;background:var(--ink);color:var(--screen);border-radius:12px;padding:10px 14px;font-size:13px;z-index:10}
@@ -253,7 +246,7 @@ select.input{appearance:none;background-image:linear-gradient(45deg,transparent 
 (function(){
 const DEMO=true; // true = 誰でも開ける体験版（共有ストレージを使わず、見本の家を最初から入れる）
 const PAGE_URL='https://migi-collab.github.io/iemori/';
-const HOME_PATH='homes/main', LOG_PATH='private/log';
+const HOME_PATH='homes/main';
 const W='日月火水木金土';
 
 const STEPS=[
@@ -261,7 +254,7 @@ const STEPS=[
   {t:'近くのお店'},
   {t:'うちにあるもの'},
   {t:'お願い'},
-  {t:'ゴミと精算'}
+  {t:'ゴミ'}
 ];
 const SPOT_KINDS=['コンビニ','スーパー','駅','ドラッグストア','デリバリー','その他'];
 // 現在地から探したときの候補（デモ用の見本。本番は位置情報＋地図APIで取得）
@@ -338,17 +331,7 @@ const SAMPLE=()=>({
   slope:500
 });
 
-// 体験版の見本データ（来客ログ・買い出しリストの追加分）
-const SAMPLE_LOG=()=>{
-  const day=n=>{const d=new Date();d.setDate(d.getDate()-n);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
-  return {visits:[
-    {id:'s1',date:day(6),who:'高校の友達',n:5,memo:'誕生日会。ケーキ持ってきてくれた'},
-    {id:'s2',date:day(13),who:'サークル',n:6,memo:'桃鉄30年やった'},
-    {id:'s3',date:day(29),who:'高校の友達',n:4,memo:''},
-    {id:'s4',date:day(48),who:'ゼミ',n:3,memo:'たこパ'},
-    {id:'s5',date:day(62),who:'高校の友達',n:5,memo:'終電逃して2人泊まり'}
-  ]};
-};
+// 体験版の見本データ（買い出しリストの追加分）
 const SAMPLE_SHOP=()=>({
   base0:{done:true},
   s1:{name:'ポテチ',done:false,createdAt:1},
@@ -362,7 +345,6 @@ let ROLE=null;       // 体験版で選んだ立場：host | guest
 let DB=null;
 let HOME=null;          // saved (what friends see)
 let DRAFT=null;         // owner's editing copy
-let LOG={visits:[]};
 let step=0, current=null, clearArmed=false;
 let NEAR={state:'idle',pick:{}};
 let ICAT='play';
@@ -404,11 +386,6 @@ async function saveHome(){
     catch(e){toast('保存できませんでした。通信状態を確かめてもう一度押してください');return false}
   }else{lsSet('oshiori-home',next)}
   HOME=next;lsSet('oshiori-draft',null);
-  return true;
-}
-async function saveLog(){
-  if(MODE==='owner'){try{await DB.doc(LOG_PATH).set(LOG)}catch(e){toast('記録できませんでした');return false}}
-  else lsSet('oshiori-log',LOG);
   return true;
 }
 function stashDraft(){lsSet('oshiori-draft',DRAFT)}
@@ -505,10 +482,7 @@ function hostForm(){
     </div>`).join('')}
     <button type="button" class="chip add" data-act="addtrash">種類を追加</button>
     <div class="field" style="margin-top:14px"><label for="f-bag">ゴミ袋・ゴミ箱の場所</label><input class="input" id="f-bag" data-f="trash.bagPlace" value="${esc(d.trash.bagPlace)}" placeholder="例：シンク下の引き出し"></div>
-    <div class="field"><label for="f-notes">分け方のメモ（1行に1つ）</label><textarea class="input" id="f-notes" data-f="trash.notes" rows="3" placeholder="例：ペットボトルはラベルを外す">${esc(d.trash.notes)}</textarea></div>
-    <div class="field"><label>精算のとき「家主の負担を軽くする」の初期値</label>
-      <div class="seg">${[0,300,500,1000].map(v=>`<button type="button" data-slope="${v}" aria-pressed="${d.slope===v}">${v?yen(v):'なし'}</button>`).join('')}</div>
-      <span class="small muted">友達側の割り勘画面でも変えられます</span></div>`;
+    <div class="field"><label for="f-notes">分け方のメモ（1行に1つ）</label><textarea class="input" id="f-notes" data-f="trash.notes" rows="3" placeholder="例：ペットボトルはラベルを外す">${esc(d.trash.notes)}</textarea></div>`;
   }
   return `
   <div class="hdr" style="padding-bottom:6px"><h2>${s.t}</h2>
@@ -531,30 +505,7 @@ function hostShare(){
   <div class="field"><label for="share-msg">送るメッセージ</label><textarea class="input" id="share-msg" rows="3">${esc(shareText())}</textarea></div>
   <button type="button" class="primary" data-act="copy">メッセージをコピー</button>
 
-  <div class="sec" style="display:grid;gap:8px"><button type="button" class="secondary" data-go="guest-guide">友達の画面を見てみる</button><button type="button" class="secondary" data-go="host-log">来客ログを見る</button></div>`;
-}
-
-/* ---------- host: log ---------- */
-function hostLog(){
-  const v=(LOG.visits||[]).slice().sort((a,b)=>b.date<a.date?-1:1);
-  const total=v.reduce((a,r)=>a+(+r.n||0),0);
-  const today=new Date();const iso=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
-  return `
-  <button type="button" class="back" data-go="host-share">← URLを送る画面へ</button>
-  <div class="hdr" style="padding-top:0"><h2>${esc(HOME&&HOME.name||'わたしの家')}の来客ログ</h2></div>
-  <div class="stat"><div><span class="small muted">これまで</span><b>${v.length}回</b></div><div><span class="small muted">来てくれた人</span><b>のべ${total}人</b></div></div>
-  <div class="sec card"><h3 style="margin:0 0 8px;font-size:13px">今日の宅飲みを記録</h3>
-    <div class="mini" style="grid-template-columns:1fr 1fr 70px">
-      <input class="input" type="date" id="lg-date" value="${iso}" aria-label="日付">
-      <input class="input" id="lg-who" placeholder="誰と（例：高校の友達）" aria-label="誰と">
-      <input class="input kbd" id="lg-n" inputmode="numeric" placeholder="人数" aria-label="人数">
-    </div>
-    <input class="input" id="lg-memo" style="margin-top:6px" placeholder="メモ（例：たこパした）" aria-label="メモ">
-    <button type="button" class="primary" style="margin-top:10px" data-act="addlog">記録する</button>
-  </div>
-  <div class="sec"><h3>記録</h3>
-    ${v.length?`<div class="log">${v.map(r=>`<div class="row"><span class="d">${esc(r.date.slice(5).replace('-','/'))}</span><span>${esc(r.who||'—')}<span class="small muted" style="display:block">${r.memo?esc(r.memo):'&nbsp;'}</span></span><span class="small muted">${esc(r.n||'?')}人 <button type="button" class="del" data-dellog="${esc(r.id)}" aria-label="この記録を削除">×</button></span></div>`).join('')}</div>`:'<div class="empty">まだ記録はありません</div>'}
-  </div>`;
+  <div class="sec" style="display:grid;gap:8px"><button type="button" class="secondary" data-go="guest-guide">友達の画面を見てみる</button></div>`;
 }
 
 /* ---------- guest ---------- */
@@ -649,7 +600,7 @@ function guestTrash(){
   ${(t.bagPlace||trashAsk)?`<div class="sec softbox"><h3>この家では</h3><ul class="asks">${t.bagPlace?`<li>ゴミ袋：${esc(t.bagPlace)}</li>`:''}${trashAsk?`<li>${esc(trashAsk)}</li>`:''}</ul></div>`:''}`;
 }
 function calc(){
-  const slope=G.slope??HOME.slope??0;
+  const slope=G.slope??500;
   const even=G.total/G.people;
   const host=Math.max(0,even-slope);
   const friend=G.people>1?(G.total-host)/(G.people-1):G.total;
@@ -672,7 +623,7 @@ function guestSplit(){
 }
 
 /* ---------- router ---------- */
-const VIEWS={'start':startView,'host-form':hostForm,'host-share':hostShare,'host-log':hostLog,'guest-guide':guestGuide,'guest-shop':guestShop,'guest-trash':guestTrash,'guest-split':guestSplit};
+const VIEWS={'start':startView,'host-form':hostForm,'host-share':hostShare,'guest-guide':guestGuide,'guest-shop':guestShop,'guest-trash':guestTrash,'guest-split':guestSplit};
 const TABS=[['guest-guide','案内','home'],['guest-shop','買い出し','cart'],['guest-trash','ゴミ','trash'],['guest-split','割り勘','yen']];
 function go(id,keep){
   if(MODE==='guest'&&!id.startsWith('guest'))id='guest-guide';
@@ -707,12 +658,10 @@ document.addEventListener('click',async e=>{
   if(d.additem!==undefined){const p=presetOf(d.additem);DRAFT.items.push({cat:ICAT,name:d.additem,note:p?p.note:'',ask:''});stashDraft();rerender();focusLast(p?'[id^="it-d-"]':'[id^="it-n-"]');return}
   if(d.addask){DRAFT.asks.push(d.addask);stashDraft();rerender();return}
   if(d.day){const [i,w]=d.day.split('.').map(Number);const r=DRAFT.trash.rows[i];r.days=r.days.includes(w)?r.days.filter(x=>x!==w):r.days.concat(w);stashDraft();rerender();return}
-  if(d.slope!==undefined){DRAFT.slope=+d.slope;stashDraft();rerender();return}
   if(d.gitem!==undefined){G.item=+d.gitem;rerender();return}
   if(d.gslope!==undefined){G.slope=+d.gslope;rerender();return}
   if(d.ppl){G.people=Math.min(30,Math.max(2,G.people+(+d.ppl)));rerender();return}
   if(d.sdel){e.preventDefault();await shopWrite(d.sdel,null);rerender();return}
-  if(d.dellog){LOG.visits=LOG.visits.filter(v=>v.id!==d.dellog);await saveLog();rerender();return}
   switch(d.act){
     case 'sample':DRAFT=SAMPLE();stashDraft();rerender();toast('見本を入れました。自分の家に書き換えてください');break;
     case 'clear':if(!clearArmed){clearArmed=true;rerender();break}clearArmed=false;DRAFT=EMPTY();stashDraft();rerender();break;
@@ -746,9 +695,6 @@ document.addEventListener('click',async e=>{
       break;
     case 'copy':{const ta=$('#share-msg');const txt=ta.value;
       try{navigator.clipboard.writeText(txt).then(()=>toast('コピーしました。LINEに貼ってください'),()=>{ta.select();toast('選択しました。長押しでコピーできます')})}catch(err){ta.select();toast('選択しました。長押しでコピーできます')}break}
-    case 'addlog':{const date=$('#lg-date').value;if(!date){toast('日付を入れてください');break}
-      LOG.visits=(LOG.visits||[]).concat({id:Date.now().toString(36),date,who:$('#lg-who').value.trim(),n:parseInt($('#lg-n').value,10)||'',memo:$('#lg-memo').value.trim()});
-      if(await saveLog()){rerender();toast('記録しました')}break}
     case 'shopadd':{
       const inp=$('#shop-new');const names=inp.value.split(/[、,，\n]/).map(x=>x.trim()).filter(Boolean);
       if(!names.length){inp.focus();break}
@@ -789,9 +735,6 @@ async function boot(){
     const canEdit=user?await user.canEdit():false;
     MODE=canEdit?'owner':'guest';
     try{const s=await db.doc(HOME_PATH).get();HOME=s.exists?norm(s.data()):null}catch(e){HOME=null}
-    if(MODE==='owner'){
-      try{const l=await db.doc(LOG_PATH).get();if(l.exists)LOG=Object.assign({visits:[]},l.data())}catch(e){}
-    }
     db.doc(HOME_PATH).onSnapshot(s=>{
       const next=s.exists?norm(s.data()):null;if(next)delete next.updatedAt;
       if(same(next,HOME))return;HOME=next;
@@ -804,7 +747,6 @@ async function boot(){
   }else{
     MODE='local';
     HOME=lsGet('oshiori-home');if(HOME)HOME=norm(HOME);else if(DEMO)HOME=SAMPLE();
-    LOG=lsGet('oshiori-log')||(DEMO?SAMPLE_LOG():{visits:[]});
     SHOPDOCS=lsGet('oshiori-shop')||(DEMO?SAMPLE_SHOP():{});
   }
   if(HOME)delete HOME.updatedAt;
