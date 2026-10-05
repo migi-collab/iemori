@@ -286,10 +286,10 @@ const SCENES=[
 ];
 const STEPS=[
   {t:'家の場所',where:'案内タブのいちばん上に表示されます。'},
-  {t:'近くのお店',where:'案内タブと買い出しタブに表示されます。'},
-  {t:'うちにあるもの',where:'案内タブに並びます。物ごとのお願いは、その物の説明にそっと添えて表示されます。'},
-  {t:'お願い',where:'案内タブの「ちょっとだけお願い」に表示されます。自分の言葉で書けます。言い方に迷ったら見本も使えます。'},
-  {t:'ゴミと精算',where:'ゴミタブと割り勘タブに表示されます。'}
+  {t:'近くのお店',where:''},
+  {t:'うちにあるもの',where:''},
+  {t:'お願い',where:''},
+  {t:'ゴミと精算',where:''}
 ];
 const SPOT_KINDS=['コンビニ','スーパー','駅','ドラッグストア','デリバリー','その他'];
 // 現在地から探したときの候補（デモ用の見本。本番は位置情報＋地図APIで取得）
@@ -445,9 +445,8 @@ function hostForm(){
   let body='';
   if(step===0) body=`
     <div class="field"><label for="f-name">家の呼び方 <span class="muted">（必須）</span></label><input class="input" id="f-name" data-f="name" value="${esc(d.name)}" placeholder="例：えなの家"></div>
-    <div class="field"><label for="f-addr">住所 <span class="muted">（部屋番号は書かなくてOK）</span></label><input class="input" id="f-addr" data-f="address" value="${esc(d.address)}" placeholder="例：東京都杉並区高円寺南3丁目"></div>
-    <div class="field"><label for="f-access">行き方・目印 <span class="muted">（任意）</span></label><textarea class="input" id="f-access" data-f="access" rows="3" placeholder="例：駅の南口から徒歩9分。コンビニの角を曲がって2軒目のマンション、3階。">${esc(d.access)}</textarea></div>
-    <p class="small muted">友達は住所をタップするとGoogleマップで開けます。</p>`;
+    <div class="field"><label for="f-addr">住所</label><input class="input" id="f-addr" data-f="address" value="${esc(d.address)}" placeholder="例：東京都杉並区高円寺南3丁目"></div>
+    <div class="field"><label for="f-access">行き方・目印 <span class="muted">（任意）</span></label><textarea class="input" id="f-access" data-f="access" rows="3" placeholder="例：駅の南口から徒歩9分。コンビニの角を曲がって2軒目のマンション、3階。">${esc(d.access)}</textarea></div>`;
   if(step===1){
     const added=n=>d.spots.some(p=>p.name===n);
     const picks=NEARBY_SAMPLE.filter((c,i)=>NEAR.pick[i]&&!added(c.name)).length;
@@ -455,7 +454,6 @@ function hostForm(){
     <div class="locate">
       <div class="head"><b>現在地から探す</b>
         <button type="button" class="locbtn" data-act="locate" ${NEAR.state==='loading'?'disabled':''}>${NEAR.state==='loading'?'<span class="spin"></span>探しています…':IC.pin+(NEAR.state==='done'?'もう一度探す':'近くのお店を探す')}</button></div>
-      ${NEAR.state==='idle'?'<span class="small muted">家にいるときに押すと、近くのコンビニ・スーパー・駅などを徒歩時間つきで一覧にします。</span>':''}
       ${NEAR.state==='done'?`<div class="cands">${NEARBY_SAMPLE.map((c,i)=>`<label class="cand ${added(c.name)?'added':''}"><input type="checkbox" data-pick="${i}" ${added(c.name)?'checked disabled':(NEAR.pick[i]?'checked':'')}><span><span class="kind">${c.kind}</span>${esc(c.name)}</span><span class="small muted kbd">${added(c.name)?'追加済み':'徒歩'+c.min+'分・'+c.m+'m'}</span></label>`).join('')}</div>
         <button type="button" class="primary" data-act="addpicked" ${picks?'':'disabled'}>${picks?`選んだ${picks}件を追加`:'追加するお店を選んでください'}</button>
         <span class="small muted">※ デモのため見本の候補を表示しています（本番では現在地から取得）</span>`:''}
@@ -484,11 +482,10 @@ function hostForm(){
     </div>`).join(''):`<div class="empty">「${cat.t}」はまだありません</div>`}
     <div class="lbl" style="margin:10px 0 6px">「${cat.t}」のよくあるものから追加</div>
     <div class="chips">${ITEM_PRESETS[ICAT].map(([n])=>`<button type="button" class="chip add" data-additem="${esc(n)}" ${d.items.some(x=>x.name===n)?'disabled':''}>${esc(n)}</button>`).join('')}
-      <button type="button" class="chip add" data-additem="">自分で追加</button></div>
-    <p class="small muted" style="margin-top:12px">上のタブでカテゴリを切り替えられます。友達の画面でもカテゴリごとにまとまって表示されます。</p>`;
+      <button type="button" class="chip add" data-additem="">自分で追加</button></div>`;
   }
   if(step===3) body=`
-    <div class="field"><label for="f-newask">お願いしたいことを自分の言葉で</label>
+    <div class="field"><label for="f-newask">自分で書く</label>
       <textarea class="input" id="f-newask" rows="2" placeholder="例：ぬいぐるみは触らないでね"></textarea>
       <button type="button" class="primary" data-act="addask" style="margin-top:4px">追加</button></div>
     <div class="lbl" style="margin:16px 0 6px">追加したお願い（${d.asks.length}件）</div>
@@ -504,7 +501,6 @@ function hostForm(){
       <div class="head"><b>住所からゴミの日を取得</b>
         <button type="button" class="locbtn" data-act="fetchtrash" ${TFETCH.state==='loading'||!d.address.trim()?'disabled':''}>${TFETCH.state==='loading'?'<span class="spin"></span>取得中…':IC.trash.replace('<svg','<svg width="14" height="14"')+(TFETCH.state==='done'?'もう一度取得':'自動で取得')}</button></div>
       ${!d.address.trim()?`<span class="small muted">先にステップ①で住所を入れると使えます。 <button type="button" class="linkbtn" data-step="0">住所を入れる</button></span>`:''}
-      ${d.address.trim()&&TFETCH.state==='idle'?`<span class="small muted">「${esc(d.address)}」から、${esc(city||'市区町村')}のゴミの日と分け方を取得します。</span>`:''}
       ${TFETCH.state==='done'&&f?`<div class="fetched"><div class="small" style="margin:2px 0 4px"><b>${esc(f.area||'この地域')}</b>の収集日</div>
           <table class="tbl"><tbody>${f.rows.map(r=>`<tr><td>${esc(r.kind)}</td><td>${[1,2,3,4,5,6,0].filter(w=>r.days.includes(w)).map(w=>W[w]).join('・')}</td><td></td></tr>`).join('')}</tbody></table></div>
         <button type="button" class="primary" data-act="applytrash">この内容で入れる</button>
@@ -524,13 +520,11 @@ function hostForm(){
       <span class="small muted">友達側の割り勘画面でも変えられます</span></div>`;
   }
   return `
-  <div class="hdr" style="padding-bottom:6px"><div class="eyebrow" style="display:flex;justify-content:space-between"><span>家主用 · ${step+1}/5</span>${statusChip()}</div><h2>${s.t}</h2>
+  <div class="hdr" style="padding-bottom:6px"><h2>${s.t}</h2>
     <nav class="progress" aria-label="登録ステップ">${STEPS.map((x,i)=>`<button type="button" data-step="${i}" aria-current="${i===step}" class="${i<step?'done':''}">${x.t}</button>`).join('')}</nav></div>
-  ${DEMO&&step===0&&!blank?`<div class="samplebar"><span>見本の家が入っています。自由に書き換えて試せます</span></div>`:''}
   ${blank&&step===0?`<div class="samplebar"><span>どんな感じか見たいときは</span><button type="button" class="ghost" data-act="sample">見本を入れる</button></div>`:''}
-  <div class="where"><span>${IC.home.replace('<svg','<svg width="16" height="16" style="flex:none;margin-top:1px"')}</span><span><b>友達の画面では：</b>${s.where}</span></div>
-  ${body}
-  ${step===0&&!blank?`<p style="margin-top:18px"><button type="button" class="linkbtn" data-act="clear">${clearArmed?'もう一度押すと全部空になります':'入力内容を全部消す'}</button></p>`:''}`;
+  ${s.where?`<div class="where"><span>${IC.home.replace('<svg','<svg width="16" height="16" style="flex:none;margin-top:1px"')}</span><span><b>友達の画面では：</b>${s.where}</span></div>`:''}
+  ${body}`;
 }
 function formFooter(){
   return `${step>0?'<button type="button" class="secondary" data-act="prev">戻る</button>':''}
@@ -543,17 +537,16 @@ function hostShare(){
   if(!hasHome(HOME))return `<div class="hdr"><h2>URLを送る</h2></div><div class="empty">先に家の情報を登録してください</div><div class="sec"><button type="button" class="primary" data-go="host-form">登録する</button></div>`;
   return `
   <button type="button" class="back" data-go="host-form">← 登録内容を編集</button>
-  <div class="hdr" style="padding-top:0"><div class="eyebrow">家主用</div><h2>URLを送る</h2><div class="sub">このメッセージをLINEグループに貼るだけ</div></div>
+  <div class="hdr" style="padding-top:0"><div class="eyebrow">家主用</div><h2>URLを送る</h2></div>
   <div class="field"><label for="share-msg">送るメッセージ</label><textarea class="input" id="share-msg" rows="3">${esc(shareText())}</textarea></div>
   <button type="button" class="primary" data-act="copy">メッセージをコピー</button>
 
-  <div class="sec"><h3>LINEではこう見えます</h3>
+  <div class="sec">
     <div class="line-mock">
       <div class="linebar"><span>‹ 宅飲みグループ</span><span>${$('#clock').textContent}</span></div>
       <div class="bubble" id="bubble">${esc(shareText())}</div>
     </div>
   </div>
-  ${DEMO?`<div class="sec card small"><b>体験版について</b><br>この体験版では、登録した内容はあなたのブラウザの中だけに保存され、ほかの人には見えません。実際のサービスでは、このURLを開いた友達に「友達の画面」が表示されます。</div>`:''}
   <div class="sec"><button type="button" class="secondary" data-go="guest-guide">友達の画面を見てみる</button></div>`;
 }
 
@@ -582,7 +575,7 @@ function hostLog(){
 /* ---------- guest ---------- */
 function guestTop(sub){
   return `${MODE!=='guest'?`<div class="guestbanner"><span>友達にはこう見えます</span><button type="button" class="back" style="padding:0" data-go="host-form">登録画面へ</button></div>`:''}
-  <div class="hdr"><div class="eyebrow">おうちのしおり</div><h2>${esc(HOME.name)}</h2><div class="sub">${sub}</div></div>`;
+  <div class="hdr"><div class="eyebrow">おうちのしおり</div><h2>${esc(HOME.name)}</h2>${sub?`<div class="sub">${sub}</div>`:''}</div>`;
 }
 function guestEmpty(){
   return `<div class="loading"><div><b>おうちのしおり</b>まだ家の情報が登録されていません。<br>家主が登録するとここに表示されます。</div></div>`;
@@ -595,7 +588,7 @@ function guestGuide(){
   const asks=h.asks.filter(a=>a.trim());
   const spots=h.spots.filter(p=>p.name.trim()).slice().sort((a,b)=>(+a.min||99)-(+b.min||99));
   const area=(h.address.match(/^(.+?[都道府県])?(.+?[市区町村])/)||[''])[0];
-  return guestTop('場所と、うちにあるもの')+`
+  return guestTop('')+`
   <div class="card placecard">
     ${h.address?`<div class="addr">${esc(h.address)}</div><div><a class="maplink" href="${mapUrl(h.address)}" target="_blank" rel="noopener">${IC.pin}Googleマップで開く</a></div>`:''}
     ${h.access?`<div class="small muted" style="white-space:pre-wrap">${esc(h.access)}</div>`:''}
@@ -621,9 +614,7 @@ function guestShop(){
   <div class="sec"><h3>買うもの <small>${MODE==='local'?'このブラウザだけに保存':'みんなで共有・あと'+left+'つ'}</small></h3>
     <div class="shop">${list.map(r=>`<label class="row ${r.done?'done':''}"><input type="checkbox" data-sdone="${r.id}" ${r.done?'checked':''} ${SHOP_RO?'disabled':''}><span class="nm">${esc(r.name)}</span><span class="r">${r.custom?`<span class="pill added">追加</span>${SHOP_RO?'':`<button type="button" class="x" data-sdel="${r.id}" aria-label="${esc(r.name)}をリストから消す">×</button>`}`:'<span class="pill buy">買う</span>'}</span></label>`).join('')}</div>
     ${SHOP_RO?`<p class="small muted" style="margin-top:8px">リストに追加・チェックするには、家主に「コントリビューター」として招待してもらってください。</p>`:`
-    <div class="shopadd"><input class="input" id="shop-new" placeholder="例：ポテチ、アイス、炭酸水" aria-label="買うものを追加"><button type="button" class="ghost" data-act="shopadd">追加</button></div>
-    <p class="small muted" style="margin:6px 0 0">追加したものは、ほかの参加者と家主の画面にも出ます。</p>`}
-    ${MODE!=='guest'?`<p style="margin-top:12px"><button type="button" class="linkbtn" data-act="shopreset">${resetArmed?'もう一度押すと、追加分とチェックを全部消します':'リストをリセット（次の宅飲み用）'}</button></p>`:''}
+    <div class="shopadd"><input class="input" id="shop-new" placeholder="例：ポテチ、アイス、炭酸水" aria-label="買うものを追加"><button type="button" class="ghost" data-act="shopadd">追加</button></div>`}
   </div>
   ${['food','dish'].map(cid=>{const c=ITEM_CATS.find(x=>x.id===cid);const g=items.filter(it=>catOf(it)===cid);return g.length?`<div class="sec"><h3>家にある${c.t} <small>買わなくてOK</small></h3><div class="shop">${g.map(it=>`<div class="row"><span></span><span>${esc(it.name)}<span class="small muted" style="display:block">${esc(it.note)}</span></span><span class="pill have">あるよ</span></div>`).join('')}</div></div>`:''}).join('')}`;
 }
@@ -651,7 +642,7 @@ function guestTrash(){
   const notes=(t.notes||'').split('\n').map(s=>s.trim()).filter(Boolean);
   const label=n=>!n?'—':n.k===0?'今日':n.k===1?'明日':(n.d.getMonth()+1)+'/'+n.d.getDate()+'('+W[n.d.getDay()]+')';
   const trashAsk=HOME.asks.find(a=>a.includes('ゴミ'));
-  return guestTop(`${esc(t.area)||'この家'}のゴミの日・分け方`)+`
+  return guestTop('')+`
   ${rows.length?`<div class="card" style="padding:4px 12px"><table class="tbl"><tbody>${rows.map(r=>`<tr><td>${esc(r.kind)}</td><td>${r.days.length?[1,2,3,4,5,6,0].filter(w=>r.days.includes(w)).map(w=>W[w]).join('・'):'—'}</td><td>${r.n?`<span class="next ${r.n.k===soon?'':'later'}">次は${label(r.n)}</span>`:''}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">ゴミの日は登録されていません</div>'}
   ${notes.length?`<div class="sec"><h3>分け方</h3><ul class="asks">${notes.map(n=>`<li>${esc(n)}</li>`).join('')}</ul></div>`:''}
   ${(t.bagPlace||trashAsk)?`<div class="sec softbox"><h3>この家では</h3><ul class="asks">${t.bagPlace?`<li>ゴミ袋：${esc(t.bagPlace)}</li>`:''}${trashAsk?`<li>${esc(trashAsk)}</li>`:''}</ul></div>`:''}`;
