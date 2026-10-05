@@ -46,22 +46,19 @@ button{cursor:pointer}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 a{color:inherit}
 
-.stage{max-width:980px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) 390px;gap:40px;align-items:start}
-.stage.solo{grid-template-columns:390px;justify-content:center}
-.story h1{font-family:var(--display);font-size:28px;line-height:1.3;margin:0 0 6px;text-wrap:balance}
-.story .lead{color:var(--muted);margin:0 0 20px;max-width:34em}
-.story .tag{display:inline-block;font-size:11px;letter-spacing:.08em;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:2px 10px;margin-bottom:12px}
-.scenes{list-style:none;margin:0;padding:0;display:grid;gap:6px}
-.scenes button{width:100%;text-align:left;display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:start;background:transparent;border:1px solid transparent;border-radius:12px;padding:10px 12px}
-.scenes button:hover{background:var(--panel)}
-.scenes button[aria-current="true"]{background:var(--panel);border-color:var(--line)}
-.scenes .n{font-family:var(--display);font-weight:700;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--sunk);color:var(--muted);font-size:13px}
-.scenes button[aria-current="true"] .n{background:var(--accent);color:var(--accent-ink)}
-.scenes .when{font-size:11px;color:var(--muted);letter-spacing:.04em}
-.scenes .what{font-weight:700;display:block}
-.scenes .why{font-size:12.5px;color:var(--muted);display:block;margin-top:2px}
-.note{margin-top:20px;font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:12px}
-
+.stage{max-width:390px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
+.demobar{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;color:var(--muted);padding:0 10px}
+.demobar button{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:4px 14px;font-size:12px}
+.start{min-height:100%;display:grid;align-content:center;gap:22px;padding:8px 0 24px}
+.start .eyebrow{display:inline-block;justify-self:start;font-size:11px;letter-spacing:.08em;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:2px 12px}
+.start h1{font-family:var(--display);font-size:32px;line-height:1.25;margin:10px 0 6px}
+.start p{margin:0;color:var(--muted)}
+.roles{display:grid;gap:10px}
+.role{display:grid;grid-template-columns:1fr auto;gap:2px 12px;align-items:center;text-align:left;border:1px solid var(--line);border-radius:20px;padding:18px 18px;background:var(--screen)}
+.role:hover{border-color:var(--accent);background:var(--accent-soft)}
+.role b{font-family:var(--display);font-size:21px}
+.role span{grid-column:1;font-size:12.5px;color:var(--muted)}
+.role i{grid-row:1 / span 2;grid-column:2;font-style:normal;font-size:20px;color:var(--muted)}
 .phone{width:390px;max-width:100%;height:780px;border-radius:44px;background:var(--frame);padding:12px;box-shadow:0 30px 60px -30px rgba(10,20,30,.45)}
 .screen{position:relative;height:100%;border-radius:34px;overflow:hidden;background:var(--screen);display:flex;flex-direction:column}
 .notch{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:96px;height:24px;border-radius:14px;background:var(--frame);z-index:5}
@@ -223,24 +220,12 @@ select.input{appearance:none;background-image:linear-gradient(45deg,transparent 
 .loading b{display:block;font-family:var(--display);font-size:22px;color:var(--ink)}
 .toast{position:absolute;left:16px;right:16px;bottom:90px;background:var(--ink);color:var(--screen);border-radius:12px;padding:10px 14px;font-size:13px;z-index:10}
 
-@media (max-width:860px){
-  .stage,.stage.solo{grid-template-columns:1fr;gap:20px;justify-items:center}
-  .story{width:100%;max-width:390px}
-  .story .lead,.story .note,.scenes .why,.story .tag{display:none}
-  .story h1{font-size:20px}
-  .scenes{display:flex;overflow-x:auto;gap:6px;padding-bottom:4px}
-  .scenes li{flex:none}
-  .scenes button{grid-template-columns:22px auto;padding:6px 10px;border-color:var(--line)}
-  .scenes .n{width:22px;height:22px;font-size:11px}
-  .scenes .when{display:none}
-  .scenes .what{font-size:12px;white-space:nowrap}
-}
 @media (max-width:440px){
   body{padding-inline:0;padding-block:0}
-  .story{padding:12px 16px 0}
-  .phone{width:100%;height:auto;border-radius:0;padding:0;background:transparent;box-shadow:none}
-  .screen{border-radius:0;height:calc(100dvh - 96px)}
-  .stage.solo .screen{height:100dvh}
+  .stage{height:100dvh;gap:0;max-width:none}
+  .demobar{padding:8px 16px;background:var(--screen);border-bottom:1px solid var(--line)}
+  .phone{width:100%;flex:1;min-height:0;height:auto;border-radius:0;padding:0;background:transparent;box-shadow:none}
+  .screen{border-radius:0;height:100%}
   .notch,.statusbar{display:none}
   .mini{grid-template-columns:1fr 1fr 64px}
 }
@@ -248,13 +233,7 @@ select.input{appearance:none;background-image:linear-gradient(45deg,transparent 
 </head>
 <body>
 <div class="stage" id="stage">
-  <aside class="story" id="story" hidden>
-    <span class="tag">体験版</span>
-    <h1>おうちのしおり<span class="muted" style="font-size:.55em;font-weight:500">（仮）</span></h1>
-    <p class="lead">家主が一度だけ家の情報を登録して、URLをLINEで送るだけ。参加者は場所や買い出しの確認で自然と開き、その中で家のルールも嫌味なく目に入ります。</p>
-    <ol class="scenes" id="scenes"></ol>
-    <p class="note" id="modeNote"></p>
-  </aside>
+  <div class="demobar" id="demobar" hidden><span>おうちのしおり 体験版</span><button type="button" data-go="start">最初に戻る</button></div>
 
   <div class="phone">
     <div class="screen">
@@ -275,15 +254,6 @@ const PAGE_URL='https://migi-collab.github.io/ouchi-shiori/';
 const HOME_PATH='homes/main', LOG_PATH='private/log';
 const W='日月火水木金土';
 
-const SCENES=[
-  {id:'host-form', when:'宅飲み前（一度だけ）', what:'家主が家を登録', why:'5つのステップで入力。お願いごとは「家の案内」の一部として登録する。'},
-  {id:'host-share',when:'場所が決まったら', what:'LINEにURLを送る', why:'参加者はリンクを開くだけ。'},
-  {id:'guest-guide',when:'向かう途中・宅飲み中', what:'参加者が家の案内を見る', why:'場所や備品を見るついでに「ちょっとだけお願い」が目に入る。'},
-  {id:'guest-shop',when:'買い出し', what:'家にあるものを確認', why:'家にあるものは「買わなくてOK」に分かれる。'},
-  {id:'guest-trash',when:'片付け', what:'ゴミの日と分け方', why:'家のルールを共有して、全員が片付けに参加できる。'},
-  {id:'guest-split',when:'精算', what:'割り勘と家主傾斜', why:'「家主の負担を軽くする」が選択肢として自然に入る。'},
-  {id:'host-log',  when:'後日', what:'家主が来客ログを見返す', why:'「今日も人が来てくれた」を実感できる、家主だけの記録。'}
-];
 const STEPS=[
   {t:'家の場所',where:'案内タブのいちばん上に表示されます。'},
   {t:'近くのお店',where:''},
@@ -369,6 +339,7 @@ const SAMPLE=()=>({
 
 /* ---------- state ---------- */
 let MODE='loading'; // owner | guest | local
+let ROLE=null;       // 体験版で選んだ立場：host | guest
 let DB=null;
 let HOME=null;          // saved (what friends see)
 let DRAFT=null;         // owner's editing copy
@@ -423,15 +394,15 @@ async function saveLog(){
 }
 function stashDraft(){lsSet('oshiori-draft',DRAFT)}
 
-/* ---------- scenes ---------- */
-function renderScenes(){
-  if(MODE==='guest'){$('#story').hidden=true;$('#stage').classList.add('solo');return}
-  $('#story').hidden=false;$('#stage').classList.remove('solo');
-  $('#scenes').innerHTML=SCENES.map((s,i)=>`<li><button type="button" data-go="${s.id}" aria-current="${s.id===current}">
-    <span class="n">${i+1}</span><span><span class="when">${s.when}</span><span class="what">${s.what}</span><span class="why">${s.why}</span></span></button></li>`).join('');
-  $('#modeNote').textContent=MODE==='owner'
-    ?''
-    :(DEMO?'これは体験版です。見本の家が入っていて、自由に書き換えて試せます。入力した内容はあなたのブラウザの中だけに保存され、ほかの人には見えません。地図・ゴミの日・PayPayは見本です。':'この表示では共有ストレージが使えないため、登録内容はこのブラウザの中だけに保存されます。');
+/* ---------- start (体験版の入口) ---------- */
+function startView(){
+  return `<div class="start">
+    <div><span class="eyebrow">体験版</span><h1>おうちのしおり</h1><p>宅飲みの家主が、家の案内を友達に共有するアプリです。</p></div>
+    <div class="roles">
+      <button type="button" class="role" data-role="host"><b>家主</b><span>自分の家を登録して、友達にURLを送る</span><i aria-hidden="true">→</i></button>
+      <button type="button" class="role" data-role="guest"><b>参加者</b><span>友達から届いたURLを開く</span><i aria-hidden="true">→</i></button>
+    </div>
+  </div>`;
 }
 
 /* ---------- host: register (5 steps) ---------- */
@@ -547,7 +518,7 @@ function hostShare(){
       <div class="bubble" id="bubble">${esc(shareText())}</div>
     </div>
   </div>
-  <div class="sec"><button type="button" class="secondary" data-go="guest-guide">友達の画面を見てみる</button></div>`;
+  <div class="sec" style="display:grid;gap:8px"><button type="button" class="secondary" data-go="guest-guide">友達の画面を見てみる</button><button type="button" class="secondary" data-go="host-log">来客ログを見る</button></div>`;
 }
 
 /* ---------- host: log ---------- */
@@ -556,7 +527,8 @@ function hostLog(){
   const total=v.reduce((a,r)=>a+(+r.n||0),0);
   const today=new Date();const iso=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
   return `
-  <div class="hdr"><div class="eyebrow">家主用 · 自分だけに見えます</div><h2>${esc(HOME&&HOME.name||'わたしの家')}の来客ログ</h2></div>
+  <button type="button" class="back" data-go="host-share">← URLを送る画面へ</button>
+  <div class="hdr" style="padding-top:0"><div class="eyebrow">家主用 · 自分だけに見えます</div><h2>${esc(HOME&&HOME.name||'わたしの家')}の来客ログ</h2></div>
   <div class="stat"><div><span class="small muted">これまで</span><b>${v.length}回</b></div><div><span class="small muted">来てくれた人</span><b>のべ${total}人</b></div></div>
   <div class="sec card"><h3 style="margin:0 0 8px;font-size:13px">今日の宅飲みを記録</h3>
     <div class="mini" style="grid-template-columns:1fr 1fr 70px">
@@ -574,7 +546,7 @@ function hostLog(){
 
 /* ---------- guest ---------- */
 function guestTop(sub){
-  return `${MODE!=='guest'?`<div class="guestbanner"><span>友達にはこう見えます</span><button type="button" class="back" style="padding:0" data-go="host-form">登録画面へ</button></div>`:''}
+  return `${MODE!=='guest'&&ROLE!=='guest'?`<div class="guestbanner"><span>友達にはこう見えます</span><button type="button" class="back" style="padding:0" data-go="host-form">登録画面へ</button></div>`:''}
   <div class="hdr"><div class="eyebrow">おうちのしおり</div><h2>${esc(HOME.name)}</h2>${sub?`<div class="sub">${sub}</div>`:''}</div>`;
 }
 function guestEmpty(){
@@ -671,7 +643,7 @@ function guestSplit(){
 }
 
 /* ---------- router ---------- */
-const VIEWS={'host-form':hostForm,'host-share':hostShare,'host-log':hostLog,'guest-guide':guestGuide,'guest-shop':guestShop,'guest-trash':guestTrash,'guest-split':guestSplit};
+const VIEWS={'start':startView,'host-form':hostForm,'host-share':hostShare,'host-log':hostLog,'guest-guide':guestGuide,'guest-shop':guestShop,'guest-trash':guestTrash,'guest-split':guestSplit};
 const TABS=[['guest-guide','案内','home'],['guest-shop','買い出し','cart'],['guest-trash','ゴミ','trash'],['guest-split','割り勘','yen']];
 function go(id,keep){
   if(MODE==='guest'&&!id.startsWith('guest'))id='guest-guide';
@@ -685,9 +657,7 @@ function go(id,keep){
   const tb=$('#tabbar');tb.hidden=!guest||!hasHome(HOME);
   if(!tb.hidden)tb.innerHTML=TABS.map(([t,l,ic])=>`<button type="button" data-go="${t}" aria-current="${t===id}">${IC[ic]}<span>${l}</span></button>`).join('');
   const fb=$('#footbar');fb.hidden=id!=='host-form';if(!fb.hidden)fb.innerHTML=formFooter();
-  renderScenes();
-  const cur=document.querySelector('.scenes [aria-current="true"]');
-  if(cur&&window.matchMedia('(max-width:860px)').matches)cur.scrollIntoView({block:'nearest',inline:'center'});
+  $('#demobar').hidden=!DEMO||id==='start';
 }
 const rerender=()=>go(current,true);
 
@@ -699,6 +669,7 @@ function delPath(obj,path){const k=path.split('.');const idx=+k.pop();let o=obj;
 document.addEventListener('click',async e=>{
   const b=e.target.closest('button');if(!b||b.disabled)return;
   const d=b.dataset;
+  if(d.role){ROLE=d.role;step=0;go(ROLE==='host'?'host-form':'guest-guide');return}
   if(d.go){if(current==='host-form'&&!same(DRAFT,HOME)&&hasHome(DRAFT)){if(!(await saveHome()))return}go(d.go);return}
   if(d.step!==undefined){if(!same(DRAFT,HOME)&&hasHome(DRAFT))await saveHome();step=+d.step;clearArmed=false;go('host-form');return}
   if(d.del){delPath(DRAFT,d.del);stashDraft();rerender();return}
@@ -813,7 +784,7 @@ async function boot(){
     const dr=lsGet('oshiori-draft');
     DRAFT=dr?norm(dr):(HOME?clone(HOME):EMPTY());
   }
-  go(MODE==='guest'?'guest-guide':(hasHome(HOME)&&!DEMO?'host-share':'host-form'));
+  go(DEMO?'start':MODE==='guest'?'guest-guide':(hasHome(HOME)?'host-share':'host-form'));
 }
 boot();
 })();
