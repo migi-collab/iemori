@@ -174,7 +174,7 @@ select.input{appearance:none;background-image:linear-gradient(45deg,transparent 
 .spot .kind{font-size:11px;color:var(--muted);display:block}
 .spot .r{display:flex;gap:8px;align-items:center}
 .itemgrid{display:flex;flex-wrap:wrap;gap:6px}
-.detail{margin-top:10px;background:var(--sunk);border-radius:12px;padding:10px 12px;font-size:13px}
+.detail{margin-top:8px;background:var(--sunk);border-radius:12px;padding:10px 12px;font-size:13px}
 .detail .aside{display:block;margin-top:6px;font-size:12.5px}
 .asks{list-style:none;margin:0;padding:0;display:grid;gap:6px}
 .asks li{display:grid;grid-template-columns:8px 1fr;gap:10px;align-items:baseline;font-size:13.5px}
@@ -536,6 +536,7 @@ function guestGuide(){
   const items=h.items.filter(i=>i.name.trim());
   if(G.item>=items.length)G.item=0;
   const sel=items[G.item];
+  const detail=sel?`<div class="detail">${esc(sel.note)||'<span class="muted">自由に使ってOK</span>'}${sel.ask?`<span class="aside">※ ${esc(sel.ask)}</span>`:''}</div>`:'';
   const asks=h.asks.filter(a=>a.trim());
   const spots=h.spots.filter(p=>p.name.trim()).slice().sort((a,b)=>(+a.min||99)-(+b.min||99));
   const area=(h.address.match(/^(.+?[都道府県])?(.+?[市区町村])/)||[''])[0];
@@ -547,8 +548,7 @@ function guestGuide(){
   </div>
   ${spots.length?`<div class="sec"><h3>近くのお店</h3><div class="spotlist">${spots.map(p=>`<div class="spot"><span><span class="kind">${esc(p.kind)}</span>${esc(p.name)}</span><span class="r"><span class="small muted kbd">${p.min?'徒歩'+esc(p.min)+'分':''}</span><a class="maplink" href="${mapUrl(p.name+' '+area)}" target="_blank" rel="noopener" aria-label="${esc(p.name)}を地図で開く">${IC.pin}</a></span></div>`).join('')}</div></div>`:''}
   ${items.length?`<div class="sec"><h3>うちにあるもの <small>タップで詳細</small></h3>
-    ${ITEM_CATS.map(c=>{const g=items.map((it,i)=>[it,i]).filter(([it])=>catOf(it)===c.id);return g.length?`<div class="catlabel">${c.t}</div><div class="itemgrid">${g.map(([it,i])=>`<button type="button" class="chip" data-gitem="${i}" aria-pressed="${i===G.item}">${esc(it.name)}</button>`).join('')}</div>`:''}).join('')}
-    ${sel?`<div class="detail">${esc(sel.note)||'<span class="muted">自由に使ってOK</span>'}${sel.ask?`<span class="aside">※ ${esc(sel.ask)}</span>`:''}</div>`:''}
+    ${ITEM_CATS.map(c=>{const g=items.map((it,i)=>[it,i]).filter(([it])=>catOf(it)===c.id);return g.length?`<div class="catlabel">${c.t}</div><div class="itemgrid">${g.map(([it,i])=>`<button type="button" class="chip" data-gitem="${i}" aria-pressed="${i===G.item}">${esc(it.name)}</button>`).join('')}</div>${g.some(([,i])=>i===G.item)?detail:''}`:''}).join('')}
   </div>`:''}
   ${asks.length?`<div class="sec softbox"><h3>ちょっとだけお願い</h3><ul class="asks">${asks.map(t=>`<li>${esc(t)}</li>`).join('')}</ul></div>`:''}`;
 }
