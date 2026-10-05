@@ -338,6 +338,24 @@ const SAMPLE=()=>({
   slope:500
 });
 
+// 体験版の見本データ（来客ログ・買い出しリストの追加分）
+const SAMPLE_LOG=()=>{
+  const day=n=>{const d=new Date();d.setDate(d.getDate()-n);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+  return {visits:[
+    {id:'s1',date:day(6),who:'高校の友達',n:5,memo:'誕生日会。ケーキ持ってきてくれた'},
+    {id:'s2',date:day(13),who:'サークル',n:6,memo:'桃鉄30年やった'},
+    {id:'s3',date:day(29),who:'高校の友達',n:4,memo:''},
+    {id:'s4',date:day(48),who:'ゼミ',n:3,memo:'たこパ'},
+    {id:'s5',date:day(62),who:'高校の友達',n:5,memo:'終電逃して2人泊まり'}
+  ]};
+};
+const SAMPLE_SHOP=()=>({
+  base0:{done:true},
+  s1:{name:'ポテチ',done:false,createdAt:1},
+  s2:{name:'アイス',done:true,createdAt:2},
+  s3:{name:'レモンサワーの素',done:false,createdAt:3}
+});
+
 /* ---------- state ---------- */
 let MODE='loading'; // owner | guest | local
 let ROLE=null;       // 体験版で選んだ立場：host | guest
@@ -786,8 +804,8 @@ async function boot(){
   }else{
     MODE='local';
     HOME=lsGet('oshiori-home');if(HOME)HOME=norm(HOME);else if(DEMO)HOME=SAMPLE();
-    LOG=lsGet('oshiori-log')||{visits:[]};
-    SHOPDOCS=lsGet('oshiori-shop')||{};
+    LOG=lsGet('oshiori-log')||(DEMO?SAMPLE_LOG():{visits:[]});
+    SHOPDOCS=lsGet('oshiori-shop')||(DEMO?SAMPLE_SHOP():{});
   }
   if(HOME)delete HOME.updatedAt;
   if(MODE!=='guest'){
