@@ -14,29 +14,15 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Maru+Gothic:wght@500;700&display=swap">
 <style>
 :root{
-  --bg:#E6EAEE; --panel:#F4F6F8; --screen:#FFFFFF; --sunk:#F1F3F6;
-  --ink:#1D2733; --muted:#5E6A77; --line:#D8DEE5;
-  --accent:#F2B23A; --accent-ink:#3A2805; --accent-soft:#FCEFD3;
-  --btn:#24324A; --btn-ink:#FFFFFF; --danger:#B3261E;
-  --frame:#1B222C;
+  /* 白基調＋オレンジ。明るい見た目に固定（ダークモードでも同じ配色） */
+  color-scheme:light;
+  --bg:#FAF8F5; --panel:#FFFFFF; --screen:#FFFFFF; --sunk:#F7F4F0;
+  --ink:#2B2520; --muted:#7B726A; --line:#ECE6DF;
+  --accent:#F47B20; --accent-ink:#FFFFFF; --accent-soft:#FFF1E4; --accent-mid:#F9C69C; --accent-deep:#B84A00;
+  --btn:#EC6A10; --btn-ink:#FFFFFF; --danger:#B3261E;
+  --frame:#EFE9E2;
   --display:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Hiragino Sans",sans-serif;
   --body:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",sans-serif;
-}
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    color-scheme:dark;
-    --bg:#0F141A; --panel:#151B22; --screen:#1A212A; --sunk:#222A34;
-    --ink:#E6EBF0; --muted:#9BA7B3; --line:#2E3844;
-    --accent:#F2B23A; --accent-ink:#2A1C02; --accent-soft:#3A2E15;
-    --btn:#F2B23A; --btn-ink:#231802; --danger:#F2A09A; --frame:#05080B;
-  }
-}
-:root[data-theme="dark"]{
-  color-scheme:dark;
-  --bg:#0F141A; --panel:#151B22; --screen:#1A212A; --sunk:#222A34;
-  --ink:#E6EBF0; --muted:#9BA7B3; --line:#2E3844;
-  --accent:#F2B23A; --accent-ink:#2A1C02; --accent-soft:#3A2E15;
-  --btn:#F2B23A; --btn-ink:#231802; --danger:#F2A09A; --frame:#05080B;
 }
 *{box-sizing:border-box}
 html,body{height:100%}
@@ -58,10 +44,10 @@ a{color:inherit}
 .role:hover{border-color:var(--accent);background:var(--accent-soft)}
 .role b{font-family:var(--display);font-size:21px}
 .role span{grid-column:1;font-size:12.5px;color:var(--muted)}
-.role i{grid-row:1 / span 2;grid-column:2;font-style:normal;font-size:20px;color:var(--muted)}
-.phone{width:390px;max-width:100%;height:780px;border-radius:44px;background:var(--frame);padding:12px;box-shadow:0 30px 60px -30px rgba(10,20,30,.45)}
+.role i{grid-row:1 / span 2;grid-column:2;font-style:normal;font-size:20px;color:var(--accent)}
+.phone{width:390px;max-width:100%;height:780px;border-radius:44px;background:var(--frame);padding:12px;box-shadow:0 0 0 1px var(--line),0 30px 60px -34px rgba(120,70,20,.28)}
 .screen{position:relative;height:100%;border-radius:34px;overflow:hidden;background:var(--screen);display:flex;flex-direction:column}
-.notch{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:96px;height:24px;border-radius:14px;background:var(--frame);z-index:5}
+.notch{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:96px;height:24px;border-radius:14px;background:#2B2520;z-index:5}
 .statusbar{height:40px;flex:none;display:flex;justify-content:space-between;align-items:end;padding:0 26px 4px;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums}
 .view{flex:1;overflow-y:auto;overflow-x:hidden;padding:4px 20px 24px;scrollbar-width:none}
 .view::-webkit-scrollbar{display:none}
@@ -108,7 +94,7 @@ select.input{appearance:none;background-image:linear-gradient(45deg,transparent 
 .progress{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-top:6px}
 .progress button{border:0;background:none;padding:4px 0 0;display:grid;gap:4px;font-size:10.5px;color:var(--muted);text-align:left}
 .progress button::before{content:"";height:4px;border-radius:2px;background:var(--line)}
-.progress button.done::before{background:var(--accent)}
+.progress button.done::before{background:var(--accent-mid)}
 .progress button[aria-current="true"]{color:var(--ink);font-weight:700}
 .progress button[aria-current="true"]::before{background:var(--btn)}
 .where{display:flex;gap:8px;align-items:flex-start;background:var(--sunk);border-radius:12px;padding:10px 12px;font-size:12px;color:var(--muted);margin-bottom:14px}
@@ -133,7 +119,7 @@ select.input{appearance:none;background-image:linear-gradient(45deg,transparent 
 .cattabs button{flex:none;border:1px solid var(--line);background:var(--screen);border-radius:10px;padding:6px 10px;font-size:12.5px;display:flex;gap:6px;align-items:center}
 .cattabs button[aria-pressed="true"]{background:var(--btn);color:var(--btn-ink);border-color:var(--btn);font-weight:700}
 .cattabs .c{font-size:11px;min-width:18px;height:18px;border-radius:9px;display:grid;place-items:center;background:var(--sunk);color:var(--muted);padding:0 5px}
-.cattabs button[aria-pressed="true"] .c{background:var(--accent);color:var(--accent-ink)}
+.cattabs button[aria-pressed="true"] .c{background:#fff;color:var(--accent-deep)}
 .catlabel{font-size:11px;color:var(--muted);letter-spacing:.04em;margin:12px 0 6px}
 .catlabel:first-child{margin-top:0}
 .fetched{background:var(--sunk);border-radius:12px;padding:8px 12px}
@@ -194,7 +180,7 @@ select.input{appearance:none;background-image:linear-gradient(45deg,transparent 
 .tbl tr:last-child td{border-bottom:0}
 .tbl td:nth-child(2){font-weight:700;white-space:nowrap}
 .tbl td:last-child{text-align:right;white-space:nowrap}
-.next{font-size:11px;font-weight:700;border-radius:999px;padding:1px 8px;background:var(--accent);color:var(--accent-ink)}
+.next{font-size:11px;font-weight:700;border-radius:999px;padding:1px 8px;background:var(--accent-soft);color:var(--accent-deep)}
 .next.later{background:transparent;color:var(--muted);border:1px solid var(--line);font-weight:400}
 .big{font-family:var(--display);font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.2}
 .split{display:grid;gap:8px}
